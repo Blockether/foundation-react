@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Generated files
+*.generated.ts
+*.generated.js
+
+# Storybook build outputs
+storybook-static/
+
+# Coverage reports
+coverage/
+
+# Cache files
+.cache/
+.parquet-cache/
+
+# DuckDB WASM files
+*.wasm
+*.duckdb
+
+# Test artifacts
+test-results/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

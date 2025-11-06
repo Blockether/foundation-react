@@ -1,0 +1,16 @@
+id,name,category,price,stock,created_at,rating
+1,Laptop Pro,Electronics,1299.99,50,2023-01-15,4.5
+2,Wireless Mouse,Electronics,29.99,200,2023-02-20,4.2
+3,Office Chair,Furniture,199.99,25,2023-03-10,4.8
+4,Coffee Maker,Appliances,89.99,75,2023-01-25,4.1
+5,Standing Desk,Furniture,449.99,15,2023-04-05,4.7
+6,USB-C Hub,Electronics,39.99,150,2023-05-12,4.0
+7,Monitor 27",Electronics,349.99,30,2023-02-28,4.6
+8,Desk Lamp,Lighting,24.99,100,2023-03-18,3.9
+9,Keyboard Mechanical,Electronics,89.99,80,2023-06-01,4.4
+10,Webcam HD,Electronics,79.99,60,2023-04-22,4.3
+11,Bookshelf,Furniture,119.99,20,2023-05-08,4.5
+12,Bluetooth Speaker,Electronics,59.99,90,2023-06-15,4.2
+13,Paper Shredder,Office,149.99,10,2023-07-01,4.1
+14,Phone Stand,Accessories,19.99,120,2023-07-20,4.6
+15,Tablet 10",Electronics,299.99,40,2023-08-10,4.4

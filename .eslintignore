@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Generated files
+*.generated.ts
+*.generated.js
+
+# Storybook build outputs
+storybook-static/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Temporary files
+tmp/
+temp/
+
+# DuckDB WASM files
+*.wasm
+*.duckdb
+
+# Browser cache
+.cache/
+.parquet-cache/
+
+# Test artifacts
+test-results/
+junit.xml
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
