@@ -2,22 +2,13 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: [],
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/components/(.*)$': '<rootDir>/src/components/$1',
-    '^@/hooks/(.*)$': '<rootDir>/src/components/hooks/$1',
-    '^@/utils/(.*)$': '<rootDir>/src/components/utils/$1',
-    '^@/types/(.*)$': '<rootDir>/src/types/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-  },
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/testSetup.ts',
     '!src/**/*.stories.tsx',
   ],
   coverageDirectory: 'coverage',

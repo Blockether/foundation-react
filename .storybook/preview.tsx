@@ -1,8 +1,8 @@
 import type { Preview } from '@storybook/react-vite'
+import { useEffect } from 'react'
 
-// Import the CSS files for styling
-import '../src/styles/variables.css'
-import '../src/styles/components.css'
+// Import the main CSS file for styling
+import '../src/styles/globals.css'
 
 const preview: Preview = {
   parameters: {
@@ -17,15 +17,15 @@ const preview: Preview = {
       toc: true,
     },
     backgrounds: {
-      options: {
+      default: 'light',
+      values: {
         light: {
-          name: 'light',
+          name: 'Light',
           value: '#ffffff',
         },
-
         dark: {
-          name: 'dark',
-          value: '#333333',
+          name: 'Dark',
+          value: '#2d2d30',
         }
       }
     },
@@ -46,13 +46,34 @@ const preview: Preview = {
 
   decorators: [
     (Story, context) => {
-      // Set the theme attribute on the root element for CSS variable switching
-      const theme = context.globals.theme || 'light'
+      const { theme } = context.globals
+
+      useEffect(() => {
+        // Apply theme class to document element for Tailwind dark: variants
+        const documentElement = document.documentElement
+        if (theme === 'dark') {
+          documentElement.classList.add('dark')
+          documentElement.classList.remove('light')
+        } else {
+          documentElement.classList.add('light')
+          documentElement.classList.remove('dark')
+        }
+
+        // Also update color scheme
+        documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
+
+        // Store in localStorage for persistence
+        localStorage.setItem('theme', theme)
+      }, [theme])
 
       return (
         <div
-          style={{ padding: '1rem', minHeight: '100vh' }}
-          data-theme={theme}
+          className={`${theme === 'dark' ? 'dark' : 'light'}`}
+          style={{
+            padding: '8px',
+            minHeight: '100vh',
+            backgroundColor: theme === 'dark' ? '#2d2d30' : '#ffffff',
+          }}
         >
           <Story />
         </div>
