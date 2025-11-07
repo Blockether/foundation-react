@@ -14,7 +14,7 @@ import {
   SectionConfig,
   SQLSectionConfig
 } from '../../types/composer'
-import { SQLCockpit } from './sql/sql-cockpit'
+import { SQLCockpit } from './sql/cockpit'
 import { CockpitThemeProvider, useCockpitTheme } from '../../contexts/cockpit-theme-context'
 import type { ReactNode, ComponentPropsWithoutRef } from 'react'
 

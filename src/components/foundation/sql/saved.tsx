@@ -111,7 +111,7 @@ export function SavedQueries({
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground"
+        className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground cursor-pointer"
         aria-label="Query history"
         aria-expanded={isOpen}
         aria-haspopup="menu"
@@ -150,7 +150,7 @@ export function SavedQueries({
                     }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-muted"
                   >
-                    <X className="h-3 w-3 text-muted-foreground" />
+                    <X className="h-3 w-3 text-muted-foreground cursor-pointer" />
                   </button>
                 )}
               </div>

@@ -66,7 +66,7 @@ src/
 │   │   ├── sql-cockpit.tsx         # Main SQL Cockpit component
 │   │   ├── sql-toolbar.tsx         # Toolbar with action buttons
 │   │   ├── sql-editor.tsx          # Monaco Editor wrapper
-│   │   ├── results-panel.tsx      # Results display component
+│   │   ├── results.tsx      # Results display component
 │   │   ├── saved-queries.tsx       # Saved query dropdown
 │   │   └── help-dialog.tsx         # Help documentation dialog
 │   ├── foundation/     # Foundation-specific components
@@ -94,7 +94,7 @@ tests/                  # Component tests
 │   └── sql/
 │       ├── sql-cockpit.test.tsx      # Component unit tests
 │       ├── sql-toolbar.test.tsx      # Toolbar unit tests
-│       └── results-panel.test.tsx    # Results panel tests
+│       └── results.test.tsx    # Results panel tests
 └── integration/
     └── sql/
         ├── sql-cockpit-e2e.test.tsx   # End-to-end workflow tests

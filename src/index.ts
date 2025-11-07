@@ -2,12 +2,12 @@
 export { Composer } from './components/foundation/composer'
 
 // SQL Cockpit components
-export { SQLCockpit } from './components/foundation/sql/sql-cockpit'
-export { SQLToolbar } from './components/foundation/sql/sql-toolbar'
-export { SQLEditor } from './components/foundation/sql/sql-editor'
-export { ResultsPanel } from './components/foundation/sql/results-panel'
-export { SavedQueries } from './components/foundation/sql/saved-queries'
-export { HelpDialog } from './components/foundation/sql/help-dialog'
+export { SQLCockpit } from './components/foundation/sql/cockpit'
+export { SQLToolbar } from './components/foundation/sql/toolbar'
+export { SQLEditor } from './components/foundation/sql/editor'
+export { ResultsPanel } from './components/foundation/sql/results'
+export { SavedQueries } from './components/foundation/sql/saved'
+export { HelpDialog } from './components/foundation/sql/help'
 
 // SQL Cockpit hooks
 export { useDuckDBQuery } from './hooks/use-duckdb-query'
@@ -15,7 +15,7 @@ export { useSQLFormatter } from './hooks/use-sql-formatter'
 export { useSQLAutocomplete } from './hooks/use-sql-autocomplete'
 
 // SQL Cockpit utilities
-export * from './utils/sql-utils'
+export * from './utils/utils'
 
 // Types
 export type {

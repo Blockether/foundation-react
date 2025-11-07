@@ -7,7 +7,7 @@
 
 import type { Meta, StoryObj, DecoratorFunction } from '@storybook/react'
 import React, { useEffect } from 'react'
-import { SQLCockpit } from '../../src/components/foundation/sql/sql-cockpit'
+import { SQLCockpit } from '../../src/components/foundation/sql/cockpit'
 
 // Mock DuckDB results
 const mockQueryResult = {

@@ -8,7 +8,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { SQLToolbar } from '../../../src/components/sql/sql-toolbar';
+import { SQLToolbar } from '../../../src/components/sql/toolbar';
 
 // Mock Lucide React icons
 jest.mock('lucide-react', () => ({

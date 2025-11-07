@@ -570,7 +570,7 @@ export default SQLCockpit;
 
 ```javascript
 // ESM export structure
-export { SQLCockpit } from './components/sql/sql-cockpit';
+export { SQLCockpit } from './components/sql/cockpit';
 export type { SQLCockpitProps } from './types/sql';
 ```
 

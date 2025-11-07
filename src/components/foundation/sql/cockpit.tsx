@@ -7,10 +7,10 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react'
-import { SQLEditor } from './sql-editor'
-import { SQLToolbar } from './sql-toolbar'
-import { ResultsPanel } from './results-panel'
-import { HelpDialog } from './help-dialog'
+import { SQLEditor } from './editor'
+import { SQLToolbar } from './toolbar'
+import { ResultsPanel } from './results'
+import { HelpDialog } from './help'
 import { useDuckDBQuery } from '../../../hooks/use-duckdb-query'
 import { useSQLFormatter } from '../../../hooks/use-sql-formatter'
 import {
@@ -57,12 +57,6 @@ export function SQLCockpit({
   // SQL editor state
   const [query, setQuery] = useState(initialQuery)
   const [showHelpDialog, setShowHelpDialog] = useState(false)
-
-  // Debug query state changes
-  useEffect(() => {
-    console.log('SQL Cockpit: Query state changed to:', query)
-  }, [query])
-
 
   // DuckDB integration
   const {
@@ -118,11 +112,12 @@ export function SQLCockpit({
 
   // Handle saved query selection
   const handleSavedQuerySelect = useCallback((selectedQuery: SavedQuery): void => {
-    console.log('SQL Cockpit handleSavedQuerySelect called with:', selectedQuery)
-    console.log('Current query before update:', query)
-    console.log('Setting new query to:', selectedQuery.query)
+    const editorPlaceholder = document.querySelector('.monaco-placeholder')
+    if (editorPlaceholder) {
+      editorPlaceholder.setAttribute('style', 'display: none !important;')
+    }
+
     setQuery(selectedQuery.query)
-    console.log('Calling parent onSavedQuerySelect callback...')
     onSavedQuerySelect?.(selectedQuery)
   }, [onSavedQuerySelect, query])
 

@@ -49,7 +49,7 @@ description: "Task list template for feature implementation"
 - [X] T008 [P] Create hooks directory structure in src/hooks/
 - [X] T009 [P] Create SQL utilities directory structure in src/utils/
 - [X] T010 [P] Create SQL types definition file in src/types/sql.ts with all interfaces from data-model.md
-- [X] T011 [P] Create SQL utility functions in src/utils/sql-utils.ts for SQL parsing and formatting
+- [X] T011 [P] Create SQL utility functions in src/utils/utils.ts for SQL parsing and formatting
 - [X] T012 [P] Update shadcn/ui Button component if not present (needed for toolbar buttons)
 - [X] T013 [P] Update shadcn/ui Table component if not present (needed for results display)
 - [X] T014 [P] Create tests/__mocks__ directory for Monaco Editor and DuckDB-WASM mocks
@@ -71,14 +71,14 @@ description: "Task list template for feature implementation"
 
 > **NOTE**: Write these tests FIRST, ensure they FAIL before implementation
 
-- [ ] T018 [P] [US1] Unit test for SQLCockpit component rendering in tests/unit/sql/sql-cockpit.test.tsx
-- [ ] T019 [P] [US1] Unit test for SQL toolbar component in tests/unit/sql/sql-toolbar.test.tsx
-- [ ] T020 [P] [US1] Unit test for SQL editor component in tests/unit/sql/sql-editor.test.tsx
-- [ ] T021 [P] [US1] Unit test for results panel component in tests/unit/sql/results-panel.test.tsx
-- [ ] T022 [P] [US1] Integration test for complete SQL workflow in tests/integration/sql/sql-cockpit-e2e.test.tsx
+- [ ] T018 [P] [US1] Unit test for SQLCockpit component rendering in tests/unit/sql/cockpit.test.tsx
+- [ ] T019 [P] [US1] Unit test for SQL toolbar component in tests/unit/sql/toolbar.test.tsx
+- [ ] T020 [P] [US1] Unit test for SQL editor component in tests/unit/sql/editor.test.tsx
+- [ ] T021 [P] [US1] Unit test for results panel component in tests/unit/sql/results.test.tsx
+- [ ] T022 [P] [US1] Integration test for complete SQL workflow in tests/integration/sql/cockpit-e2e.test.tsx
 - [ ] T023 [P] [US1] Integration test for Monaco Editor integration in tests/integration/sql/monaco-integration.test.tsx
 - [ ] T024 [P] [US1] Integration test for DuckDB-WASM workflow in tests/integration/sql/duckdb-integration.test.tsx
-- [ ] T025 [P] [US1] Storybook story for SQL Cockpit component in stories/sql/sql-cockpit.stories.tsx
+- [ ] T025 [P] [US1] Storybook story for SQL Cockpit component in stories/sql/cockpit.stories.tsx
 
 ### Implementation for User Story 1
 
@@ -86,12 +86,12 @@ description: "Task list template for feature implementation"
 - [ ] T027 [P] [US1] Create useDuckDBQuery hook in src/hooks/use-duckdb-query.ts for query execution
 - [ ] T028 [P] [US1] Create useSQLFormatter hook in src/hooks/use-sql-formatter.ts for query formatting
 - [ ] T029 [P] [US1] Create useSQLAutocomplete hook in src/hooks/use-sql-autocomplete.ts for autocomplete functionality
-- [ ] T030 [US1] Create SQL toolbar component in src/components/sql/sql-toolbar.tsx with action buttons (Play, Format, Select Query)
-- [ ] T031 [P] [US1] Create SQL editor component in src/components/sql/sql-editor.tsx with Monaco Editor integration (depends on T027, T028)
-- [ ] T032 [P] [US1] Create results panel component in src/components/sql/results-panel.tsx for table/error display (depends on T010)
-- [ ] T033 [P] [US1] Create saved queries component in src/components/sql/saved-queries.tsx for query selection dropdown
+- [ ] T030 [US1] Create SQL toolbar component in src/components/sql/toolbar.tsx with action buttons (Play, Format, Select Query)
+- [ ] T031 [P] [US1] Create SQL editor component in src/components/sql/editor.tsx with Monaco Editor integration (depends on T027, T028)
+- [ ] T032 [P] [US1] Create results panel component in src/components/sql/results.tsx for table/error display (depends on T010)
+- [ ] T033 [P] [US1] Create saved queries component in src/components/sql/saved.tsx for query selection dropdown
 - [ ] T034 [P] [US1] Create help dialog component in src/components/sql/help-dialog.tsx for DuckDB documentation
-- [ ] T035 [US1] Create main SQL Cockpit component in src/components/sql/sql-cockpit.tsx integrating all subcomponents (depends on T026-T034)
+- [ ] T035 [US1] Create main SQL Cockpit component in src/components/sql/cockpit.tsx integrating all subcomponents (depends on T026-T034)
 - [ ] T036 [US1] Implement Run Query button functionality with loading states in SQL toolbar
 - [ ] T037 [US1] Implement Format Query button functionality using sql-formatter in SQL toolbar
 - [ ] T038 [US1] Implement Select Query dropdown with saved queries functionality in SQL toolbar
@@ -241,24 +241,24 @@ description: "Task list template for feature implementation"
 
 ```bash
 # Launch all tests for User Story 1 together (tests are REQUIRED for this feature):
-Task: "Unit test for SQLCockpit component rendering in tests/unit/sql/sql-cockpit.test.tsx"
-Task: "Unit test for SQL toolbar component in tests/unit/sql/sql-toolbar.test.tsx"
-Task: "Unit test for SQL editor component in tests/unit/sql/sql-editor.test.tsx"
-Task: "Unit test for results panel component in tests/unit/sql/results-panel.test.tsx"
+Task: "Unit test for SQLCockpit component rendering in tests/unit/sql/cockpit.test.tsx"
+Task: "Unit test for SQL toolbar component in tests/unit/sql/toolbar.test.tsx"
+Task: "Unit test for SQL editor component in tests/unit/sql/editor.test.tsx"
+Task: "Unit test for results panel component in tests/unit/sql/results.test.tsx"
 
 # Launch all types/components for User Story 1 together:
 Task: "Create SQL Cockpit types definition in src/types/sql.ts"
 Task: "Create useDuckDBQuery hook in src/hooks/use-duckdb-query.ts"
-Task: "Create SQL toolbar component in src/components/sql/sql-toolbar.tsx"
-Task: "Create SQL editor component in src/components/sql/sql-editor.tsx"
-Task: "Create results panel component in src/components/sql/results-panel.tsx"
+Task: "Create SQL toolbar component in src/components/sql/toolbar.tsx"
+Task: "Create SQL editor component in src/components/sql/editor.tsx"
+Task: "Create results panel component in src/components/sql/results.tsx"
 ```
 
 ```bash
 # Launch all implementation tasks for User Story 1 together:
-Task: "Create saved queries component in src/components/sql/saved-queries.tsx"
+Task: "Create saved queries component in src/components/sql/saved.tsx"
 Task: "Create help dialog component in src/components/sql/help-dialog.tsx"
-Task: "Create main SQL Cockpit component in src/components/sql/sql-cockpit.tsx"
+Task: "Create main SQL Cockpit component in src/components/sql/cockpit.tsx"
 Task: "Implement Run Query button functionality with loading states in SQL toolbar"
 Task: "Implement Format Query button functionality using sql-formatter in SQL toolbar"
 Task: "Implement Monaco Editor SQL syntax highlighting and language configuration"

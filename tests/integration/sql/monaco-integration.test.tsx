@@ -8,7 +8,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { SQLEditor } from '../../../src/components/sql/sql-editor';
+import { SQLEditor } from '../../../src/components/sql/editor';
 
 // Mock Monaco Editor and its API
 const mockEditor = {

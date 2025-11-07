@@ -8,7 +8,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { ResultsPanel } from '../../../src/components/sql/results-panel';
+import { ResultsPanel } from '../../../src/components/sql/results';
 import { QueryResult, SQLError } from '../../../src/types/sql';
 
 describe('ResultsPanel', () => {
@@ -393,11 +393,11 @@ describe('ResultsPanel', () => {
       const { container } = render(
         <ResultsPanel
           {...defaultProps}
-          className="custom-results-panel"
+          className="custom-results"
         />
       );
 
-      expect(container.firstChild).toHaveClass('custom-results-panel');
+      expect(container.firstChild).toHaveClass('custom-results');
     });
 
     it('should use custom maxHeight', () => {

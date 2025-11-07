@@ -7,7 +7,7 @@
 
 import React, { useEffect } from 'react'
 import { Button } from '../../ui/button'
-import { SavedQueries } from './saved-queries'
+import { SavedQueries } from './saved'
 import { DatabaseStatus, SavedQuery } from '../../../types/sql'
 import { cn } from '../../../lib/utils'
 

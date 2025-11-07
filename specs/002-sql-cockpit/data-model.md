@@ -586,7 +586,7 @@ export default SQLCockpit;
 ### ESM Bundle Structure
 ```javascript
 // In final ESM bundle
-export { SQLCockpit } from './components/sql/sql-cockpit';
+export { SQLCockpit } from './components/sql/cockpit';
 export type { SQLCockpitProps } from './types/sql';
 export { useDuckDBQuery } from './hooks/use-duckdb-query';
 ```

@@ -21,11 +21,11 @@
 ### Component Tests
 
 ```typescript
-// tests/unit/sql/sql-cockpit.test.tsx
+// tests/unit/sql/cockpit.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SQLCockpit } from '../../../src/components/sql/sql-cockpit';
-import { mockQueryResults, mockSQLError, mockSavedQueries } from '../../__fixtures__/sql-fixtures';
+import { SQLCockpit } from '../../../src/components/sql/cockpit';
+import { mockQueryResults, mockSQLError, mockSavedQueries } from '../../__fixtures__/fixtures';
 
 // Mock Monaco Editor
 jest.mock('@monaco-editor/react', () => {
@@ -388,10 +388,10 @@ describe('useDuckDBQuery', () => {
 ### End-to-End Workflow Tests
 
 ```typescript
-// tests/integration/sql/sql-cockpit-e2e.test.tsx
+// tests/integration/sql/cockpit-e2e.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SQLCockpit } from '../../../src/components/sql/sql-cockpit';
+import { SQLCockpit } from '../../../src/components/sql/cockpit';
 
 // Integration tests use real Monaco and DuckDB in browser environment
 describe('SQLCockpit Integration Tests', () => {
@@ -473,11 +473,11 @@ describe('SQLCockpit Integration Tests', () => {
 ### WCAG 2.1 AA Compliance Tests
 
 ```typescript
-// tests/accessibility/sql/sql-cockpit.a11y.test.tsx
+// tests/accessibility/sql/cockpit.a11y.test.tsx
 import { render, screen } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import userEvent from '@testing-library/user-event';
-import { SQLCockpit } from '../../../src/components/sql/sql-cockpit';
+import { SQLCockpit } from '../../../src/components/sql/cockpit';
 
 expect.extend(toHaveNoViolations);
 
@@ -573,10 +573,10 @@ describe('SQLCockpit Accessibility', () => {
 ### Performance Benchmarks
 
 ```typescript
-// tests/performance/sql/sql-cockpit.perf.test.tsx
+// tests/performance/sql/cockpit.perf.test.tsx
 import { render, screen } from '@testing-library/react';
 import { performance } from 'perf_hooks';
-import { SQLCockpit } from '../../../src/components/sql/sql-cockpit';
+import { SQLCockpit } from '../../../src/components/sql/cockpit';
 
 describe('SQLCockpit Performance', () => {
   it('renders within performance budget', () => {
@@ -633,12 +633,12 @@ describe('SQLCockpit Performance', () => {
 ### Storybook Visual Tests
 
 ```typescript
-// tests/storybook/sql/sql-cockpit.visual.test.tsx
+// tests/storybook/sql/cockpit.visual.test.tsx
 import { expect } from '@storybook/test-runner';
 import { Story } from '@storybook/react';
 import { render, screen } from '@testing-library/react';
 import { composeStories } from '@storybook/testing-react';
-import * as stories from '../../../stories/sql/sql-cockpit.stories';
+import * as stories from '../../../stories/sql/cockpit.stories';
 
 const { Default, WithResults, WithError, DarkTheme } = composeStories(stories);
 
@@ -672,7 +672,7 @@ describe('SQLCockpit Visual Tests', () => {
 ### Mock Data Fixtures
 
 ```typescript
-// tests/__fixtures__/sql-fixtures.ts
+// tests/__fixtures__/fixtures.ts
 export const mockQueryResults = {
   data: [
     { id: 1, name: 'John Doe', email: 'john@example.com', active: true },
@@ -726,7 +726,7 @@ module.exports = {
     '^@monaco-editor/react': '<rootDir>/tests/__mocks__/@monaco-editor/react.tsx',
     '^@duckdb/duckdb-wasm': '<rootDir>/tests/__mocks__/@duckdb/duckdb-wasm.ts',
   },
-  setupFilesAfterEnv: ['<rootDir>/tests/setup/sql-cockpit-setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup/cockpit-setup.ts'],
   testTimeout: 10000, // Longer timeout for integration tests
 };
 ```
@@ -734,7 +734,7 @@ module.exports = {
 ### Test Setup
 
 ```typescript
-// tests/setup/sql-cockpit-setup.ts
+// tests/setup/cockpit-setup.ts
 import '@testing-library/jest-dom';
 
 // Mock ResizeObserver for Monaco Editor

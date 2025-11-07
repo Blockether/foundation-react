@@ -8,7 +8,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { SQLCockpit } from '../../../src/components/sql/sql-cockpit';
+import { SQLCockpit } from '../../../src/components/sql/cockpit';
 
 // Mock Monaco Editor
 jest.mock('@monaco-editor/react', () => ({
