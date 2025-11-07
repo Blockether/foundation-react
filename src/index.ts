@@ -1,13 +1,3 @@
-// shadcn/ui components
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from './components/ui/card'
-
 // Foundation components
 export { Composer } from './components/foundation/composer'
 
@@ -48,9 +38,3 @@ export type {
   ResultsPanelOptions,
   ToolbarAction,
 } from './types/sql'
-
-// Utilities
-export { cn } from './lib/utils'
-
-// Version
-export const version = '1.0.0'

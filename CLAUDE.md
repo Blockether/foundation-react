@@ -9,3 +9,4 @@
 - **NEVER create example files** (e.g., `*-example.tsx`, `*-demo.tsx`, `*-sandbox.tsx`)
 - All components should be production-ready and self-documenting through proper TypeScript types and JSDoc comments
 - Integration examples should be documented in README files or component JSDoc, not as separate example files
+- NEVER expose the internal libraries in the index.ts
