@@ -59,7 +59,7 @@ export function useSQLFormatter(
     tabWidth = 2,
     useTabs = false,
     logicalOperatorNewline = 'before',
-    expressionWidth = 50,
+    expressionWidth = 120,
     linesBetweenQueries = 2,
     denseOperators = false,
     newlineBeforeSemicolon = false,

@@ -1,8 +1,19 @@
 import type { Preview } from '@storybook/react-vite'
 import { useEffect } from 'react'
+import { ThemeProvider, useTheme, type Theme } from '../src/components/theme'
 
 // Import the main CSS file for styling
 import '../src/styles/globals.css'
+
+const StoryThemeProviderWrapper = ({ children, theme }: { children: React.ReactNode; theme: Theme }) => {
+  const { setTheme } = useTheme()
+
+  useEffect(() => {
+    setTheme(theme)
+  }, [theme, setTheme])
+
+  return <>{children}</>
+}
 
 const preview: Preview = {
   parameters: {
@@ -48,35 +59,12 @@ const preview: Preview = {
     (Story, context) => {
       const { theme } = context.globals
 
-      useEffect(() => {
-        // Apply theme class to document element for Tailwind dark: variants
-        const documentElement = document.documentElement
-        if (theme === 'dark') {
-          documentElement.classList.add('dark')
-          documentElement.classList.remove('light')
-        } else {
-          documentElement.classList.add('light')
-          documentElement.classList.remove('dark')
-        }
-
-        // Also update color scheme
-        documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
-
-        // Store in localStorage for persistence
-        localStorage.setItem('theme', theme)
-      }, [theme])
-
       return (
-        <div
-          className={`${theme === 'dark' ? 'dark' : 'light'}`}
-          style={{
-            padding: '8px',
-            minHeight: '100vh',
-            backgroundColor: theme === 'dark' ? '#2d2d30' : '#ffffff',
-          }}
-        >
-          <Story />
-        </div>
+        <ThemeProvider defaultTheme={theme}>
+          <StoryThemeProviderWrapper theme={theme}>
+            <Story />
+          </StoryThemeProviderWrapper>
+        </ThemeProvider>
       )
     },
   ],

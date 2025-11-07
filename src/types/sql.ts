@@ -76,11 +76,6 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
   helpContent?: ReactNode | string
 
   /**
-   * Minimum height for the SQL editor area
-   */
-  editorMinHeight?: string
-
-  /**
    * Maximum height for the results display area
    */
   resultsMaxHeight?: string
@@ -195,35 +190,6 @@ export interface SQLError {
    * Stack trace or additional error details
    */
   details?: string
-}
-
-/**
- * Database connection status interface
- */
-export interface DatabaseStatus {
-  /**
-   * Current connection state
-   */
-  state: 'connected' | 'connecting' | 'disconnected' | 'error'
-
-  /**
-   * Status message for display
-   */
-  message: string
-
-  /**
-   * Error message if connection failed
-   */
-  error?: string
-
-  /**
-   * Connection details (for display purposes)
-   */
-  connectionInfo?: {
-    type: string
-    location: string
-    size?: string
-  }
 }
 
 /**
