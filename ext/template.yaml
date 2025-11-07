@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Example SAM template for a Lambda-based chat backend
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+Resources:
+  AgnoOSApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+
+  AgnoOSHandler:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: .
+    Properties:
+      PackageType: Image
+      Architectures:
+      - arm64
+      Environment:
+        Variables:
+          BLOCKETHER_LLM_API_BASE_URL: !Sub '${BlocketherLLMBaseUrl}'
+          BLOCKETHER_LLM_API_KEY: !Sub '${BlocketherLLMAPIKey}'
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AgnoOSApi
+            Path: /{proxy+}
+            Method: ANY
+
+Parameters:
+  BlocketherLLMBaseUrl:
+    Type: String
+    Default: ""
+    Description: Base URL for the LLM API
+  BlocketherLLMAPIKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: API key for the LLM

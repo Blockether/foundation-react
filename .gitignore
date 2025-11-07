@@ -6,7 +6,9 @@ node_modules/
 .yarn/install-state.gz
 .yarn/build-state.yml
 .yarn/patches/
-
+__pycache__
+.aws-sam
+uv.lock
 # Build outputs
 dist/
 build/
@@ -24,6 +26,7 @@ build/
 .idea/
 *.swp
 *.swo
+.venv
 *~
 .DS_Store
 Thumbs.db
