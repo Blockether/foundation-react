@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
+import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [
+    tailwindcss(),
     react(),
     dts({
       insertTypesEntry: true,
@@ -35,25 +37,12 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'react',
-        'react-dom',
-        'react/jsx-runtime',
-        '@duckdb/duckdb-wasm',
-        'monaco-editor',
-        '@monaco-editor/react',
-        '@popsql/monaco-sql-languages',
-        '@radix-ui/react-slot',
-        'class-variance-authority',
-        'clsx',
-        'effect',
-        'lucide-react',
-        'sql-formatter',
-        'tailwind-merge'
+        'react-dom'
       ],
       output: {
         globals: {
           react: 'React',
-          'react-dom': 'ReactDOM',
-          'react/jsx-runtime': 'jsxRuntime',
+          'react-dom': 'ReactDOM'
         },
         // Remove manual chunks for external dependencies to avoid conflicts
       },
