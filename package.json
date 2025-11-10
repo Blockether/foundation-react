@@ -1,6 +1,6 @@
 {
   "name": "@blockether/foundation-react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React-based chat UI, complement to `blockether_foundation` library with integrated SQL analysis capabilities",
   "type": "module",
   "main": "dist/foundation-react.cjs.js",
