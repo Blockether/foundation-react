@@ -2,14 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
 import tailwindcss from '@tailwindcss/vite'
-import { libInjectCss } from 'vite-plugin-lib-inject-css'
 import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    libInjectCss(),
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],
@@ -34,6 +32,7 @@ export default defineConfig({
       formats: ['es'], // ESM-only as required by constitution
       fileName: 'foundation-react',
     },
+    cssCodeSplit: false, // Bundle all CSS into one file
     rollupOptions: {
       external: [
         'react',
@@ -48,7 +47,12 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM'
         },
-        // Remove manual chunks for external dependencies to avoid conflicts
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'style.css') {
+            return 'foundation-react.css'
+          }
+          return assetInfo.name || 'assets/[name][extname]'
+        },
       },
     },
     // Optimize for browser distribution

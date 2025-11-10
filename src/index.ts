@@ -1,3 +1,5 @@
+import "./styles/globals.css"
+
 export { ThemeProvider, useTheme } from './components/theme'
 
 // SQL Cockpit components
