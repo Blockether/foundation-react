@@ -5,31 +5,50 @@
  * management, including Run Query, Format Query, Saved Queries, Help, and database status.
  */
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // Lucide React icons
-import { Play, Pause, FileText, HelpCircle, Database } from 'lucide-react'
+import { Play, Square, Sparkles, HelpCircle, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SavedQueries } from './saved'
-import { SavedQuery } from '@/types/sql'
+import { DataSources, DataSourcesProps } from './datasources'
+import { SavedQuery, DataSource, QueryResult, AnalyticalQuery } from '@/types/sql'
+import { DuckDBQueryState } from '@/lib/duckdb/types'
 
 interface SQLToolbarProps {
   // Actions
   onRunQuery: () => void
+  onCancelQuery?: () => void
   onFormatQuery: () => void
   onHelp?: () => void
+  onSaveResults?: () => void
 
   // State
-  isExecuting: boolean
-  readOnly?: boolean
+  queryState: DuckDBQueryState
+  queryResult?: QueryResult | null
+  queryError?: any
+  query?: string // Current query content for format button validation
 
   // Saved queries
-  savedQueries?: SavedQuery[]
+  savedQueries: SavedQuery[]
   onSavedQuerySelect?: (query: SavedQuery) => void
 
+  // Data sources
+  dataSources?: DataSource[]
+  isLoadingBatch: boolean
+  onImportFile?: (file: File) => Promise<void>
+  onSelectDataSource?: (dataSource: DataSource) => void
+  onExecuteAnalyticalQuery?: (query: AnalyticalQuery, dataSource?: DataSource) => Promise<void>
+
+  // Analytical query state
+  isAnalyticalQuery?: boolean
+  currentAnalyticalQuery?: AnalyticalQuery | null
+
+  // Analytical queries for data analysis
+  analyticalQueries?: AnalyticalQuery[]
+
   // UI options
-  showHelp?: boolean
   className?: string
 }
 
@@ -38,30 +57,105 @@ interface SQLToolbarProps {
  */
 export function SQLToolbar({
   onRunQuery,
+  onCancelQuery,
   onFormatQuery,
   onHelp,
-  isExecuting,
+  onSaveResults,
+  queryState,
+  queryResult,
+  queryError,
+  query = '',
   savedQueries = [],
   onSavedQuerySelect,
+  dataSources = [],
+  isLoadingBatch = false,
+  onImportFile,
+  onSelectDataSource,
+  onExecuteAnalyticalQuery,
+  isAnalyticalQuery = false,
+  currentAnalyticalQuery = null,
+  analyticalQueries,
   className,
 }: SQLToolbarProps): React.ReactNode {
+
+  // Animation state for play button
+  const [isPlayAnimating, setIsPlayAnimating] = useState(false)
+
+  // Derived state helpers
+  const isRunning = queryState === DuckDBQueryState.QueryRunning
+  const isInterrupting = queryState === DuckDBQueryState.QueryInterrupting
+  const hasQueryContent = query.trim().length > 0
+  const canRun = (queryState === DuckDBQueryState.QueryIdle ||
+    queryState === DuckDBQueryState.QueryCompleted ||
+    queryState === DuckDBQueryState.QueryError) && hasQueryContent
+
+  // Save functionality is only available when there are valid results (no errors)
+  const canSave = queryResult && queryResult.data && queryResult.data.length > 0 && !queryError && queryState === DuckDBQueryState.QueryCompleted
+
+  // Format functionality is only available when there's content in the editor
+  const canFormat = query.trim().length > 0
+
+  // Reset animation when query state changes (prevents jumping)
+  React.useEffect(() => {
+    if (isRunning || isInterrupting || queryState === DuckDBQueryState.QueryCompleted || queryState === DuckDBQueryState.QueryError) {
+      setIsPlayAnimating(false)
+    }
+  }, [queryState, isRunning, isInterrupting])
+
+  // Handle play button click with subtle animation
+  const handlePlayClick = (): void => {
+    if (isRunning) {
+      onCancelQuery?.()
+    } else if (canRun) {
+      setIsPlayAnimating(true)
+      onRunQuery()
+      // Reset animation after a very short delay, but let the state change handle it
+      setTimeout(() => {
+        if (!isRunning) {
+          setIsPlayAnimating(false)
+        }
+      }, 75)
+    }
+  }
 
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
+      // Help shortcuts (handle first to prevent conflicts)
+      if (event.key === 'F1' || event.key === '?') {
+        event.preventDefault()
+        if (onHelp) {
+          onHelp()
+        }
+        return
+      }
+
+      // Handle Command+H specifically to prevent system behavior
+      if (event.metaKey && event.key === 'h') {
+        event.preventDefault()
+        event.stopPropagation()
+        if (onHelp) {
+          onHelp()
+        }
+        return
+      }
+
       if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
           case 'Enter':
             event.preventDefault()
-            if (!isExecuting) {
-              onRunQuery()
+            if (canRun) {
+              handlePlayClick()
             }
             break
           case 's':
             event.preventDefault()
-            onFormatQuery()
+            if (canSave && onSaveResults) {
+              onSaveResults()
+            }
             break
           case 'h':
+            // This handles Ctrl+H on Windows/Linux (Command+H on Mac handled above)
             event.preventDefault()
             if (onHelp) {
               onHelp()
@@ -69,46 +163,25 @@ export function SQLToolbar({
             break
         }
       }
+
+      // Handle Ctrl+Shift+F for formatting
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'F') {
+        event.preventDefault()
+        if (canFormat) {
+          onFormatQuery()
+        }
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onRunQuery, onFormatQuery, onHelp, isExecuting])
-
-  // const getStatusColor = (): string => {
-  //   switch (databaseStatus.state) {
-  //     case 'connected':
-  //       return 'text-green-600 dark:text-green-400'
-  //     case 'connecting':
-  //       return 'text-yellow-600 dark:text-yellow-400'
-  //     case 'error':
-  //       return 'text-red-600 dark:text-red-400'
-  //     case 'disconnected':
-  //       return ''
-  //     default:
-  //       return ''
-  //   }
-  // }
-
-  // const getStatusIcon = (): React.ReactNode => {
-  //   switch (databaseStatus.state) {
-  //     case 'connected':
-  //       return <Database className="h-4 w-4 text-green-600 dark:text-green-400" />
-  //     case 'connecting':
-  //       return <Database className="h-4 w-4 text-yellow-600 dark:text-yellow-400 animate-pulse" />
-  //     case 'error':
-  //       return <Database className="h-4 w-4 text-red-600 dark:text-red-400" />
-  //     default:
-  //       return <Database className="h-4 w-4 " />
-  //   }
-  // }
-
+  }, [handlePlayClick, onFormatQuery, onHelp, onSaveResults, canRun, canSave, canFormat])
 
   return (
     <>
       <div
         className={cn(
-          'flex items-center justify-between px-4 py-3 border-b shadow-md backdrop-blur-sm z-1',
+          'flex items-center justify-between px-4 py-3 border-b shadow-md backdrop-blur-sm z-[50] rounded-t',
           className
         )}
         role="toolbar"
@@ -116,54 +189,96 @@ export function SQLToolbar({
       >
         {/* Left side - Action buttons */}
         <div className="flex items-center gap-1">
-          {/* Run Query button */}
-          <div title={isExecuting ? 'Executing query...' : 'Run query (Ctrl+Enter)'}>
+          {/* Run/Cancel Query button */}
+          <div title={
+            isRunning || isInterrupting
+              ? 'Cancel query'
+              : hasQueryContent
+                ? 'Run query (Ctrl+Enter)'
+                : 'Run query disabled - no content to execute'
+          }>
             <Button
               size="sm"
-              onClick={onRunQuery}
-              disabled={isExecuting}
+              onClick={handlePlayClick}
+              disabled={!canRun && !isRunning}
               className={cn(
-                "min-w-[40px] hover:cursor-pointer",
-                isExecuting
-                  ? "bg-yellow-500 text-black hover:bg-yellow-700"
-                  : "bg-green-500 text-white hover:bg-green-700"
+                "min-w-[40px] hover:cursor-pointer transition-colors duration-150",
+                isRunning
+                  ? "bg-red-500 text-white hover:bg-red-700"
+                  : isInterrupting
+                    ? "bg-yellow-500 text-black hover:bg-yellow-600"
+                    : cn(
+                      "bg-green-500 text-white hover:bg-green-700",
+                      // Subtle animation effect
+                      isPlayAnimating && "bg-green-600"
+                    )
               )}
               aria-label={
-                isExecuting ? 'Executing query...' : 'Run SQL Query (Ctrl+Enter)'
+                isRunning ? 'Cancel query' : 'Run SQL Query (Ctrl+Enter)'
               }
             >
-              {isExecuting ? (
-                <Pause className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-              <span className="sr-only">{isExecuting ? 'Executing Query' : 'Run Query'}</span>
+              <div className="relative w-4 h-4 overflow-hidden">
+                <Play
+                  className={cn(
+                    "h-4 w-4 absolute inset-0 transition-all duration-500 ease-in-out",
+                    isRunning
+                      ? "opacity-0 -rotate-180 scale-0"
+                      : "opacity-100 rotate-0 scale-100"
+                  )}
+                />
+                <Square
+                  className={cn(
+                    "h-4 w-4 absolute inset-0 transition-all duration-500 ease-in-out delay-100",
+                    isRunning
+                      ? "opacity-100 rotate-0 scale-100"
+                      : "opacity-0 rotate-180 scale-0"
+                  )}
+                />
+              </div>
+              <span className="sr-only">{isRunning ? 'Cancel Query' : 'Run Query'}</span>
             </Button>
           </div>
 
           {/* Format Query button */}
-          <div title="Format query (Ctrl+S)">
+          <div title={canFormat ? "Format query (Ctrl+Shift+F)" : "Format query disabled - no content to format"}>
             <Button
               size="sm"
               variant="ghost"
               onClick={onFormatQuery}
-              className="hover:cursor-pointer"
-              aria-label="Format SQL Query (Ctrl+S)"
+              disabled={!canFormat}
+              className={cn("hover:cursor-pointer", !canFormat && "opacity-50 cursor-not-allowed")}
+              aria-label={canFormat ? "Format SQL Query (Ctrl+Shift+F)" : "Format query disabled - no content to format"}
             >
-              <FileText className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               <span className="sr-only">Format Query</span>
             </Button>
           </div>
         </div>
 
-        {/* Right side - Status, History and Help */}
+        {/* Center - Analytical Query Indicator */}
+        {isAnalyticalQuery && currentAnalyticalQuery && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
+            <BarChart3 className="h-3 w-3 text-primary" />
+            <span className="text-xs font-medium text-primary">
+              {currentAnalyticalQuery.name}
+            </span>
+          </div>
+        )}
+
+        {/* Right side - Data Sources, Saved Queries and Help */}
         <div className="flex items-center gap-1">
-          {/* Database status */}
-          <div className="flex items-center mr-3 gap-1">
-            {/* {getStatusIcon()}
-            <span className={cn('text-sm font-medium', getStatusColor())}>
-              {databaseStatus.message}
-            </span> */}
+          {/* Data Sources component */}
+          <div className="relative">
+            <DataSources
+              {...({
+                dataSources,
+                isLoadingBatch,
+                onImportFile,
+                onSelectDataSource,
+                onExecuteAnalyticalQuery,
+                analyticalQueries,
+              } as DataSourcesProps)}
+            />
           </div>
 
           {/* Saved Queries component */}
@@ -194,10 +309,10 @@ export function SQLToolbar({
 
         {/* Status announcement for screen readers */}
         <div role="status" aria-live="polite" className="sr-only">
-          {isExecuting && 'Executing SQL query'}
-          {/* {databaseStatus.state === 'connected' && 'Database connected'}
-          {databaseStatus.state === 'error' &&
-            `Database error: ${databaseStatus.error}`} */}
+          {queryState === DuckDBQueryState.QueryRunning && 'Executing SQL query'}
+          {queryState === DuckDBQueryState.QueryInterrupting && 'Canceling SQL query'}
+          {queryState === DuckDBQueryState.QueryCompleted && 'Query completed'}
+          {queryState === DuckDBQueryState.QueryError && 'Query failed'}
         </div>
       </div>
 

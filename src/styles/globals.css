@@ -92,3 +92,13 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 }
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}

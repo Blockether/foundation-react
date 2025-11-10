@@ -21,35 +21,6 @@ interface HelpDialogProps {
 }
 
 /**
- * Keyboard shortcut item component
- */
-function ShortcutItem({
-  keys,
-  description,
-}: {
-  keys: string
-  description: string
-}): React.ReactNode {
-  return (
-    <div className="flex items-center justify-between p-2 ">
-      <span className="text-sm ">{description}</span>
-      <div className="flex items-center gap-1">
-        {keys.split('+').map((key, index) => (
-          <React.Fragment key={index}>
-            {index > 0 && (
-              <span className=" text-xs leading-none">+</span>
-            )}
-            <kbd className="px-2 py-1  border text-xs font-mono  leading-none">
-              {key.trim()}
-            </kbd>
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/**
  * External link component
  */
 function ExternalLinkComponent({
@@ -77,7 +48,7 @@ function ExternalLinkComponent({
 export function HelpDialog({
   isOpen,
   onClose,
-  title = 'SQL Cockpit Help',
+  title = 'SQL Cockpit',
   className,
 }: HelpDialogProps): React.ReactNode {
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -146,7 +117,7 @@ export function HelpDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 /80 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
         aria-label="Close help dialog"
       />
@@ -167,10 +138,10 @@ export function HelpDialog({
           <h2
             ref={titleRef}
             id="help-dialog-title"
-            className="text-xl font-semibold flex items-center gap-2 "
+            className="text-xl font-semibold flex items-center gap-2 text-foreground"
             tabIndex={-1}
           >
-            <BookOpen className="h-5 w-5 " />
+            <BookOpen className="h-5 w-5 text-foreground" />
             {title}
           </h2>
           <Button
@@ -188,11 +159,11 @@ export function HelpDialog({
         <DefaultHelpContent />
 
         {/* Footer */}
-        <div className="p-4 border-t /30">
+        <div className="p-4 border-t border-bottom">
           <div className="flex items-center justify-between">
-            <div className="text-sm ">
+            <div className="text-sm text-muted-foreground">
               Press{' '}
-              <kbd className="px-1 py-0.5  border text-xs ">
+              <kbd className="px-1.5 py-0.5 bg-muted border text-foreground text-xs rounded">
                 Esc
               </kbd>{' '}
               to close
@@ -209,116 +180,325 @@ export function HelpDialog({
  */
 function DefaultHelpContent(): React.ReactNode {
   return (
-    <div className="space-y-6 ">
+    <div className="space-y-6 p-6 overflow-y-auto flex-1">
       {/* Quick Start */}
       <section>
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 ">
-          <Zap className="h-5 w-5 " />
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-foreground">
+          <Zap className="h-5 w-5 text-foreground" />
           Quick Start
         </h3>
-        <p className="text-sm  mb-3">
-          Get started with SQL Cockpit by writing and executing SQL queries
-          against DuckDB.
+        <p className="text-sm text-muted-foreground mb-3">
+          Get started with SQL Cockpit by writing and running a query against the
+          built-in DuckDB database. These steps mirror what most analysts do each time
+          they explore data.
         </p>
-        <ol className="text-sm space-y-2 list-decimal list-inside ">
-          <li>Type your SQL query in the editor below</li>
+        <ol className="text-sm text-foreground space-y-2 list-decimal list-inside">
+          <li>Type your SQL query in the editor.</li>
           <li>
             Press{' '}
-            <kbd className="px-1 py-0.5  border text-xs ">
+            <kbd className="px-1.5 py-0.5 bg-muted border text-foreground text-xs rounded">
               Ctrl+Enter
             </kbd>{' '}
-            to execute
+            (or{' '}
+            <kbd className="px-1.5 py-0.5 bg-muted border text-foreground text-xs rounded">
+              Cmd+Enter
+            </kbd>{' '}
+            on macOS) to run the query.
           </li>
-          <li>View results in the table below the editor</li>
+          <li>Review the results in the table beneath the editor.</li>
           <li>
             Use{' '}
-            <kbd className="px-1 py-0.5  border text-xs ">
-              Ctrl+S
+            <kbd className="px-1.5 py-0.5 bg-muted border text-foreground text-xs rounded">
+              Ctrl+Shift+F
             </kbd>{' '}
-            to format your query
+            (or{' '}
+            <kbd className="px-1.5 py-0.5 bg-muted border text-foreground text-xs rounded">
+              Cmd+Shift+F
+            </kbd>{' '}
+            on macOS) to auto-format the SQL.
           </li>
         </ol>
       </section>
 
       {/* Keyboard Shortcuts */}
       <section>
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 ">
-          <Keyboard className="h-5 w-5 " />
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-foreground">
+          <Keyboard className="h-5 w-5 text-foreground" />
           Keyboard Shortcuts
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <ShortcutItem keys="Ctrl+Enter" description="Execute query" />
-          <ShortcutItem keys="Ctrl+S" description="Format query" />
-          <ShortcutItem keys="Ctrl+/" description="Toggle comment" />
-          <ShortcutItem keys="Esc" description="Close dialogs" />
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted/50 border-b">
+                <th className="text-left p-3 font-medium text-foreground">Command</th>
+                <th className="text-right p-3 font-medium text-foreground">Shortcut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              <tr className="hover:bg-muted/30 transition-colors">
+                <td className="p-3 text-foreground">Execute query</td>
+                <td className="p-3 text-right">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center justify-end gap-1">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Ctrl</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Enter</kbd>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Cmd</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Enter</kbd>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-muted/30 transition-colors">
+                <td className="p-3 text-foreground">Format query</td>
+                <td className="p-3 text-right">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center justify-end gap-1">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Ctrl</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Shift</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">F</kbd>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Cmd</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Shift</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">F</kbd>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-muted/30 transition-colors">
+                <td className="p-3 text-foreground">Save results to file</td>
+                <td className="p-3 text-right">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center justify-end gap-1">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Ctrl</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">S</kbd>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Cmd</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">S</kbd>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-muted/30 transition-colors">
+                <td className="p-3 text-foreground">Toggle comment</td>
+                <td className="p-3 text-right">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center justify-end gap-1">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Ctrl</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">/</kbd>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Cmd</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">/</kbd>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-muted/30 transition-colors">
+                <td className="p-3 text-foreground">Show help</td>
+                <td className="p-3 text-right">
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center justify-end gap-1">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">F1</kbd>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Ctrl</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">H</kbd>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 text-muted-foreground">
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Cmd</kbd>
+                      <span className="text-muted-foreground text-xs leading-none">+</span>
+                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">H</kbd>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr className="hover:bg-muted/30 transition-colors">
+                <td className="p-3 text-foreground">Close dialogs</td>
+                <td className="p-3 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">Esc</kbd>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       {/* SQL Basics */}
       <section>
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 ">
-          <Code className="h-5 w-5 " />
-          SQL Basics
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-foreground">
+          <Code className="h-5 w-5 text-foreground" />
+          DuckDB SQL Basics
         </h3>
-        <div className="space-y-3 text-sm ">
-          <div>
-            <h4 className="font-medium mb-1 ">Basic Commands</h4>
-            <ul className="space-y-1 ">
-              <li>
-                <code className="px-1 py-0.5  text-xs">
-                  SELECT
-                </code>{' '}
-                - Retrieve data from tables
-              </li>
-              <li>
-                <code className="px-1 py-0.5  text-xs">
-                  INSERT
-                </code>{' '}
-                - Add new records
-              </li>
-              <li>
-                <code className="px-1 py-0.5  text-xs">
-                  UPDATE
-                </code>{' '}
-                - Modify existing records
-              </li>
-              <li>
-                <code className="px-1 py-0.5  text-xs">
-                  DELETE
-                </code>{' '}
-                - Remove records
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-medium mb-1 ">Query Examples</h4>
-            <div className="space-y-2">
-              <div className="p-2  text-xs font-mono ">
-                SELECT * FROM users LIMIT 10;
-              </div>
-              <div className="p-2  text-xs font-mono ">
-                SELECT COUNT(*) FROM users WHERE active = true;
-              </div>
-              <div className="p-2  text-xs font-mono ">
-                INSERT INTO users (name, email) VALUES ('John',
-                'john@example.com');
-              </div>
+        <div className="space-y-6 text-sm text-foreground">
+          <article className="space-y-2">
+            <h4 className="font-medium">1. SELECT – choose columns</h4>
+            <p>
+              Start every query with <code>SELECT</code>. List the columns or expressions you
+              need. DuckDB includes helpers like <code>*</code>,{' '}
+              <code>COLUMNS('pattern')</code>, <code>EXCLUDE</code>, <code>REPLACE</code>,
+              <code>DISTINCT</code>, and <code>DISTINCT ON</code> to reshape results quickly.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT DISTINCT ON (country) city, population<br />
+              FROM cities<br />
+              ORDER BY country, population DESC;
             </div>
-          </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">2. FROM &amp; JOIN – pick data sources</h4>
+            <p>
+              <code>FROM</code> comes next and can reference tables, views, subqueries, or table
+              functions (for example <code>read_parquet</code>). Combine sources with inner,
+              outer, semi, anti, positional, <code>LATERAL</code>, or <code>ASOF</code> joins. Use{' '}
+              <code>USING</code> for same-name columns or <code>WITH ORDINALITY</code> to number
+              rows coming from table functions.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT t.i, s.name<br />
+              FROM range(10) AS t(i)<br />
+              JOIN stations s USING (i);
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">3. WHERE – filter early</h4>
+            <p>
+              Apply row filters before any grouping. Combine conditions with{' '}
+              <code>AND</code> or <code>OR</code>, use <code>IN</code>, <code>BETWEEN</code>, or{' '}
+              <code>LIKE</code>/<code>ILIKE</code>, and remember that <code>NULL</code> comparisons
+              need <code>IS NULL</code> or <code>IS NOT NULL</code>.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT * FROM weather<br />
+              WHERE city = 'Paris' AND temp BETWEEN 15 AND 25;
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">4. GROUP BY – aggregate rows</h4>
+            <p>
+              Group rows before aggregating. Every expression in the select list must either
+              be aggregated or listed in <code>GROUP BY</code>. Use <code>GROUP BY ALL</code> to
+              automatically include all non-aggregated select columns.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT city, AVG(temp) AS avg_temp<br />
+              FROM weather<br />
+              GROUP BY ALL;
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">5. GROUPING SETS, ROLLUP, CUBE – multi-level totals</h4>
+            <p>
+              Produce multiple aggregation levels in one pass. DuckDB fills missing grouping
+              columns with <code>NULL</code>. Call <code>GROUPING_ID()</code> if you need to
+              distinguish real <code>NULL</code> values from subtotal rows.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT city, street, SUM(sales) AS total_sales<br />
+              FROM orders<br />
+              GROUP BY ROLLUP (city, street);
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">6. HAVING – filter after grouping</h4>
+            <p>
+              Use <code>HAVING</code> to remove groups based on aggregate calculations. It runs
+              after <code>GROUP BY</code>, so it can refer to aggregates such as{' '}
+              <code>COUNT(*)</code> or <code>AVG()</code>.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT city, COUNT(*) AS trips<br />
+              FROM rideshare<br />
+              GROUP BY city<br />
+              HAVING COUNT(*) &gt;= 50;
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">7. WITH – reusable subqueries</h4>
+            <p>
+              Common table expressions (CTEs) keep queries readable. Add{' '}
+              <code>MATERIALIZED</code> or <code>NOT MATERIALIZED</code> to override DuckDB&apos;s
+              automatic choice. Use <code>WITH RECURSIVE</code> for hierarchies or graph
+              traversals, and <code>USING KEY</code> to deduplicate rows between iterations.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              WITH recent AS NOT MATERIALIZED (<br />
+              &nbsp;&nbsp;SELECT * FROM sales WHERE date &gt; current_date - INTERVAL 30 DAY<br />
+              )<br />
+              SELECT store, SUM(amount)<br />
+              FROM recent<br />
+              GROUP BY store;
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">8. ORDER BY – sort results</h4>
+            <p>
+              Sort near the end of the query. Specify columns, expressions, or positions and
+              add <code>ASC</code> or <code>DESC</code> plus <code>NULLS FIRST</code> or{' '}
+              <code>NULLS LAST</code>. Use <code>ORDER BY ALL</code> to sort by every column in
+              the select list, left to right.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT city, temp<br />
+              FROM weather<br />
+              ORDER BY temp DESC NULLS LAST;
+            </div>
+          </article>
+
+          <article className="space-y-2">
+            <h4 className="font-medium">9. LIMIT &amp; OFFSET – control how much you see</h4>
+            <p>
+              Trim the final output. Set a row count or percentage (for example{' '}
+              <code>LIMIT 10%</code>) and optionally add an <code>OFFSET</code> for paging. Pair
+              with <code>ORDER BY</code> for repeatable results.
+            </p>
+            <div className="p-3 text-xs font-mono bg-muted rounded border">
+              SELECT * FROM weather<br />
+              ORDER BY date DESC<br />
+              LIMIT 10 OFFSET 20;
+            </div>
+          </article>
         </div>
       </section>
 
       {/* DuckDB Resources */}
       <section>
-        <h3 className="text-lg font-semibold mb-3 ">DuckDB Resources</h3>
+        <h3 className="text-lg font-semibold mb-3 text-foreground">DuckDB Resources</h3>
         <div className="space-y-2 text-sm">
           <ExternalLinkComponent
-            href="https://duckdb.org/docs/"
-            label="DuckDB Documentation"
+            href="https://duckdb.org/docs/stable/sql/introduction"
+            label="SQL Introduction & Reference"
           />
           <ExternalLinkComponent
-            href="https://duckdb.org/docs/sql/introduction.html"
-            label="SQL Functions Reference"
+            href="https://duckdb.org/docs/stable/clients/wasm/extensions"
+            label="DuckDB-WASM Extensions"
+          />
+          <ExternalLinkComponent
+            href="https://duckdb.org/docs/"
+            label="Full DuckDB Documentation"
           />
           <ExternalLinkComponent
             href="https://duckdb.org/docs/data/csv/overview.html"
@@ -330,56 +510,6 @@ function DefaultHelpContent(): React.ReactNode {
           />
         </div>
       </section>
-    </div>
-  )
-}
-
-/**
- * Render help content from string (supports basic markdown)
- */
-function HelpContentRenderer({
-  content,
-}: {
-  content: string
-}): React.ReactNode {
-  // Simple markdown parser for basic formatting
-  const processedContent = content
-    // Headers
-    .replace(
-      /^### (.+)$/gm,
-      '<h3 class="text-lg font-semibold mb-3 mt-4 ">$1</h3>'
-    )
-    .replace(
-      /^## (.+)$/gm,
-      '<h2 class="text-xl font-semibold mb-4 mt-6 ">$1</h2>'
-    )
-    .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mb-4 mt-8 ">$1</h1>')
-    // Bold
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Code blocks
-    .replace(
-      /```(\w+)?\n([\s\S]*?)```/g,
-      '<pre class="p-3  text-xs font-mono overflow-x-auto mt-2 mb-2 "><code>$2</code></pre>'
-    )
-    // Inline code
-    .replace(
-      /`([^`]+)`/g,
-      '<code class="px-1 py-0.5  text-xs ">$1</code>'
-    )
-    // Links - use theme-aware colors
-    .replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline">$1</a>'
-    )
-    // Line breaks
-    .replace(/\n\n/g, '</p><p class="mb-3 ">')
-    .replace(/\n/g, '<br />')
-
-  return (
-    <div className="prose prose-sm max-w-none ">
-      <p className="mb-3">{processedContent}</p>
     </div>
   )
 }

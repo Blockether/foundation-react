@@ -7,37 +7,32 @@ Description: >
 Globals:
   Function:
     Timeout: 30
-    MemorySize: 1024
+    MemorySize: 128
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
-Resources:
-  AgnoOSApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: prod
 
-  AgnoOSHandler:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+Resources:
+  FastAPIFunction:
+    Type: AWS::Serverless::Function
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: .
     Properties:
       PackageType: Image
       Architectures:
-      - arm64
+        - arm64
       Environment:
         Variables:
           BLOCKETHER_LLM_API_BASE_URL: !Sub '${BlocketherLLMBaseUrl}'
           BLOCKETHER_LLM_API_KEY: !Sub '${BlocketherLLMAPIKey}'
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref AgnoOSApi
-            Path: /{proxy+}
-            Method: ANY
+          AWS_LWA_INVOKE_MODE: RESPONSE_STREAM
+          AWS_LWA_ASYNC_INIT: "true"
+          AWS_LWA_ENABLE_COMPRESSION: "true"
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
 
 Parameters:
   BlocketherLLMBaseUrl:
@@ -49,3 +44,12 @@ Parameters:
     Default: ""
     NoEcho: true
     Description: API key for the LLM
+
+
+Outputs:
+  FastAPIFunctionUrl:
+    Description: "Function URL for FastAPI function"
+    Value: !GetAtt FastAPIFunctionUrl.FunctionUrl
+  FastAPIFunction:
+    Description: "FastAPI Lambda Function ARN"
+    Value: !GetAtt FastAPIFunction.Arn
