@@ -1,0 +1,202 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.20.0
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-${{ matrix.node-version }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.node-version }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type checking
+        run: pnpm type-check
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Build library
+        run: pnpm build
+
+      - name: Test distribution files exist
+        run: |
+          echo "Checking distribution files..."
+          ls -la dist/
+
+          # Check main entry points exist
+          if [ ! -f "dist/foundation-react.es.js" ]; then
+            echo "❌ ES module not found"
+            exit 1
+          fi
+          if [ ! -f "dist/foundation-react.cjs.js" ]; then
+            echo "❌ CommonJS module not found"
+            exit 1
+          fi
+          if [ ! -f "dist/index.d.ts" ]; then
+            echo "❌ TypeScript declarations not found"
+            exit 1
+          fi
+
+          echo "✅ All distribution files found"
+
+  build-storybook:
+    name: Build Storybook
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.20.0
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Storybook
+        run: pnpm build-storybook
+
+      - name: Upload Storybook artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook
+          path: storybook-static/
+          retention-days: 7
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.20.0
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build current branch
+        run: pnpm build
+
+      - name: Get current bundle size
+        run: |
+          echo "CURRENT_ES_SIZE=$(cat dist/foundation-react.es.js | gzip -c | wc -c)" >> $GITHUB_ENV
+          echo "CURRENT_CJS_SIZE=$(cat dist/foundation-react.cjs.js | gzip -c | wc -c)" >> $GITHUB_ENV
+          echo "Current ES bundle size: ${{ env.CURRENT_ES_SIZE }} bytes (gzipped)"
+          echo "Current CJS bundle size: ${{ env.CURRENT_CJS_SIZE }} bytes (gzipped)"
+
+      - name: Checkout target branch
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          git checkout origin/${{ github.base_ref }}
+
+      - name: Build target branch
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Get target bundle size
+        run: |
+          echo "TARGET_ES_SIZE=$(cat dist/foundation-react.es.js | gzip -c | wc -c)" >> $GITHUB_ENV
+          echo "TARGET_CJS_SIZE=$(cat dist/foundation-react.cjs.js | gzip -c | wc -c)" >> $GITHUB_ENV
+          echo "Target ES bundle size: ${{ env.TARGET_ES_SIZE }} bytes (gzipped)"
+          echo "Target CJS bundle size: ${{ env.TARGET_CJS_SIZE }} bytes (gzipped)"
+
+      - name: Compare bundle sizes
+        run: |
+          # Calculate percentage changes
+          ES_CHANGE=$(( (CURRENT_ES_SIZE - TARGET_ES_SIZE) * 100 / TARGET_ES_SIZE ))
+          CJS_CHANGE=$(( (CURRENT_CJS_SIZE - TARGET_CJS_SIZE) * 100 / TARGET_CJS_SIZE ))
+
+          echo "ES bundle size change: ${ES_CHANGE}%"
+          echo "CJS bundle size change: ${CJS_CHANGE}%"
+
+          # Comment on PR with size changes
+          if [ $ES_CHANGE -gt 10 ] || [ $CJS_CHANGE -gt 10 ] || [ $ES_CHANGE -lt -10 ] || [ $CJS_CHANGE -lt -10 ]; then
+            echo "::notice::Bundle size changed significantly: ES ${ES_CHANGE}%, CJS ${CJS_CHANGE}%"
+          fi

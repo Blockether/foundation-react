@@ -28,7 +28,6 @@ export function SavedQueries({
 }: SavedQueriesProps): React.ReactNode {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState(-1)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const triggerButtonRef = useRef<HTMLButtonElement>(null)
@@ -56,7 +55,6 @@ export function SavedQueries({
       ) {
         setIsOpen(false)
         setSearchTerm('')
-        setSelectedIndex(-1)
       }
     }
 
@@ -75,7 +73,6 @@ export function SavedQueries({
     onSelect(query)
     setIsOpen(false)
     setSearchTerm('')
-    setSelectedIndex(-1)
   }
 
   const formatLastModified = (date: Date): string => {
@@ -118,7 +115,7 @@ export function SavedQueries({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-50 flex flex-col"
+          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-[50] flex flex-col"
         >
           {/* Search input */}
           {queries.length > 3 && (
@@ -132,7 +129,6 @@ export function SavedQueries({
                   value={searchTerm}
                   onChange={e => {
                     setSearchTerm(e.target.value)
-                    setSelectedIndex(-1)
                   }}
                   className="w-full pl-10 pr-10 py-1.5 text-xs  border focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
@@ -140,7 +136,6 @@ export function SavedQueries({
                   <button
                     onClick={() => {
                       setSearchTerm('')
-                      setSelectedIndex(-1)
                       searchInputRef.current?.focus()
                     }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:"
@@ -168,12 +163,11 @@ export function SavedQueries({
                     role="menuitem"
                     className={cn(
                       'w-full text-left px-3 py-3 text-sm',
-                      'focus:outline-none cursor-pointer dark:hover:bg-foreground text-foreground dark:hover:text-background',
+                      'focus:outline-none cursor-pointer',
+                      'hover:bg-muted transition-colors',
                       index < filteredQueries.length - 1 && 'border-b'
-
                     )}
                     onClick={() => handleSelect(query)}
-                    onMouseEnter={() => setSelectedIndex(index)}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -199,7 +193,7 @@ export function SavedQueries({
 
           {/* Footer */}
           {filteredQueries.length > 0 && (
-            <div className="px-3 py-2 border-t bg-background">
+            <div className="px-3 py-2 border-t bg-background rounded-b-sm">
               <div className="text-xs ">
                 {filteredQueries.length}{' '}
                 {filteredQueries.length === 1 ? 'query' : 'queries'} found

@@ -1,0 +1,54 @@
+# Source files
+src/
+stories/
+.storybook/
+ext/
+
+# Configuration files
+.github/
+.vscode/
+.*ignore
+.editorconfig
+.eslintrc.*
+.prettierrc.*
+
+# Build artifacts
+dist/
+build/
+*.tgz
+
+# Dependencies
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+
+# Development files
+*.log
+*.local
+.DS_Store
+.env
+.env.*
+.envrc
+
+# Testing
+coverage/
+.nyc_output/
+tests/
+**/*.test.*
+**/*.spec.*
+
+# Documentation
+CHANGELOG.md
+RELEASE_SETUP.md
+README.md
+
+# Storybook
+storybook-static/
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

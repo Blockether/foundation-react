@@ -10,12 +10,7 @@ import { useState, useCallback } from 'react'
 import { format } from 'sql-formatter'
 import { SQLError } from '../types/sql'
 
-type SQLDialect =
-  | 'sql'
-  | 'mysql'
-  | 'postgresql'
-  | 'sqlite'
-  | 'bigquery'
+type SQLDialect = 'sql' | 'mysql' | 'postgresql' | 'sqlite' | 'bigquery'
 
 interface UseSQLFormatterOptions {
   dialect?: SQLDialect

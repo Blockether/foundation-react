@@ -3,15 +3,12 @@ name = "foundation-react"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
-    "ag-ui-protocol>=0.1.9",
-    "agno",
+    "ag-ui-protocol>=0.1.10",
+    "agno>=2.2.10",
     "fastapi>=0.121.0",
     "fastmcp>=2.13.0.2",
-    "mangum>=0.19.0",
     "openai>=2.7.1",
+    "uvicorn>=0.38.0",
 ]
-
-[tool.uv.sources]
-agno = { git = "https://github.com/Blockether/agno.git", subdirectory = "libs/agno" }

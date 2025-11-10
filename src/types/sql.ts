@@ -79,6 +79,32 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
    * Maximum height for the results display area
    */
   resultsMaxHeight?: string
+
+  /**
+   * List of analytical queries for data analysis
+   * If provided, these will be available for execution on data sources
+   */
+  analyticalQueries?: AnalyticalQuery[]
+
+  /**
+   * Callback function for executing analytical queries with data source context
+   */
+  onExecuteAnalyticalQuery?: (
+    query: AnalyticalQuery,
+    dataSource?: DataSource
+  ) => Promise<void>
+
+  /**
+   * Initial data sources to populate the data sources panel
+   * If provided, these will be available for analytical queries immediately
+   */
+  initialDataSources?: DataSource[]
+
+  /**
+   * Whether to automatically drop tables when data sources are removed from initialDataSources
+   * Default: false (keeps tables even if removed from prop)
+   */
+  autoCleanupRemovedDataSources?: boolean
 }
 
 /**
@@ -230,21 +256,6 @@ export interface SavedQuery {
    * When the query was last modified
    */
   updatedAt: Date
-
-  /**
-   * Number of times this query has been executed
-   */
-  executionCount?: number
-
-  /**
-   * Average execution time in milliseconds
-   */
-  averageExecutionTime?: number
-
-  /**
-   * Whether this query is a favorite/bookmarked
-   */
-  isFavorite?: boolean
 }
 
 /**
@@ -405,4 +416,227 @@ export interface ToolbarAction {
    * Action variant/style
    */
   variant?: 'default' | 'primary' | 'secondary' | 'outline' | 'ghost'
+}
+
+/**
+ * Analytical query category type
+ * Supports both predefined categories and custom extensions
+ */
+export type AnalyticalQueryCategory =
+  | 'summary' // Basic statistical summaries
+  | 'pattern' // Data profiling and patterns
+  | 'validation' // Data quality validation
+  | 'insights' // Quick insights and top values
+  | 'correlation' // Relationship analysis between columns
+  | 'forecasting' // Time series predictions
+  | 'clustering' // Customer segmentation analysis
+  | 'anomaly' // Outlier and anomaly detection
+  | 'trend' // Trend analysis
+  | 'benchmarking' // Performance comparisons
+  | 'health' // Data quality scoring
+  | 'compliance' // Regulatory and compliance checks
+  | string // Allow custom categories for extensibility
+
+/**
+ * Analytical query interface
+ */
+export interface AnalyticalQuery {
+  /**
+   * Unique identifier for the analytical query
+   */
+  id: string
+
+  /**
+   * Display name for the query
+   */
+  name: string
+
+  /**
+   * Description of what the query analyzes
+   */
+  description: string
+
+  /**
+   * Generated SQL query
+   */
+  query: string
+
+  /**
+   * Icon to represent the query type - can be a string (emoji) or React node
+   */
+  icon: string | React.ReactNode
+
+  /**
+   * Query category - extensible to support custom analysis types
+   */
+  category: AnalyticalQueryCategory
+
+  /**
+   * Target specific table names - if specified, query only applies to these tables
+   */
+  targetTables?: string[]
+
+  /**
+   * Target data source types - if specified, query only applies to these source types
+   */
+  targetCategories?: ('table' | 'view' | 'file' | 'url')[]
+}
+
+/**
+ * Analytical query execution result
+ */
+export interface AnalyticalQueryResult {
+  /**
+   * The analytical query that was executed
+   */
+  query: AnalyticalQuery
+
+  /**
+   * Query execution result
+   */
+  result: QueryResult
+
+  /**
+   * Metadata about the execution
+   */
+  metadata: {
+    /**
+     * Execution time in milliseconds
+     */
+    executionTime: number
+
+    /**
+     * Source table name
+     */
+    tableName: string
+
+    /**
+     * Total number of rows in the source table
+     */
+    totalRows: number
+
+    /**
+     * Whether this was an analytical query (vs manual query)
+     */
+    isAnalytical: boolean
+  }
+}
+
+/**
+ * Column information for schema inference
+ */
+export interface ColumnInfo {
+  /**
+   * Column name
+   */
+  name: string
+
+  /**
+   * Column data type
+   */
+  type: string
+
+  /**
+   * Whether the column can contain null values
+   */
+  nullable: boolean
+}
+
+/**
+ * Data source loading status
+ */
+export type DataSourceLoadingStatus =
+  | 'idle'
+  | 'loading'
+  | 'loaded'
+  | 'failed'
+  | 'verification_needed'
+
+/**
+ * Data source interface for SQL Cockpit
+ */
+export interface DataSource {
+  /**
+   * Unique identifier for the data source
+   */
+  id: string
+
+  /**
+   * Display name for the data source
+   */
+  name: string
+
+  /**
+   * Type of data source
+   */
+  type: 'table' | 'view' | 'file' | 'url'
+
+  /**
+   * Optional description
+   */
+  description?: string
+
+  /**
+   * File information (for file-based sources)
+   */
+  file?: {
+    name: string
+    size: number
+    type: string
+  }
+
+  /**
+   * Table name in DuckDB
+   */
+  tableName: string
+
+  /**
+   * When the data source was created/imported
+   */
+  createdAt: Date
+
+  /**
+   * Icon name from Lucide React
+   */
+  icon?: string
+
+  /**
+   * Schema information for the data source
+   */
+  schema?: ColumnInfo[]
+
+  /**
+   * Available analytical queries for this data source
+   */
+  analyticalQueries?: AnalyticalQuery[]
+
+  /**
+   * Whether analytical queries are enabled for this data source
+   */
+  enableAnalysis?: boolean
+
+  /**
+   * URL to fetch data from (for url type or initial loading)
+   */
+  url?: string
+
+  /**
+   * File object for initial loading (for file type)
+   */
+  fileData?: File
+
+  /**
+   * Raw data for initial loading (alternative to url/fileData)
+   */
+  data?: Record<string, unknown>[]
+
+  /**
+   * Loading status of the data source
+   */
+  loadingStatus?: DataSourceLoadingStatus
+
+  /**
+   * Error message if loading failed
+   */
+  loadingError?: string
 }
