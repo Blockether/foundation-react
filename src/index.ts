@@ -1,3 +1,5 @@
+export { ThemeProvider, useTheme } from './components/theme'
+
 // SQL Cockpit components
 export { SQLCockpit } from './components/sql/cockpit'
 export { SQLEditor } from './components/sql/editor'
