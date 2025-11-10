@@ -2,12 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
 import tailwindcss from '@tailwindcss/vite'
+import { libInjectCss } from 'vite-plugin-lib-inject-css'
 import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
+    libInjectCss(),
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],
@@ -29,15 +31,17 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'BlocketherFoundationReact',
-      formats: ['es', 'cjs'], // ESM and CommonJS for better compatibility
-      fileName: (format) => {
-        return format === 'es' ? 'foundation-react.es.js' : 'foundation-react.cjs.js'
-      },
+      formats: ['es'], // ESM-only as required by constitution
+      fileName: 'foundation-react',
     },
     rollupOptions: {
       external: [
         'react',
-        'react-dom'
+        'react-dom',
+        '@duckdb/duckdb-wasm',
+        '@monaco-editor/react',
+        'recharts',
+        'apache-arrow'
       ],
       output: {
         globals: {
