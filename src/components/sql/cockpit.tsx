@@ -682,10 +682,10 @@ const SQLCockpitWrappedContent = ({
             prev.map(ds =>
               ds.id === dataSource.id
                 ? {
-                  ...ds,
-                  loadingStatus: 'failed' as const,
-                  loadingError: errorMessage,
-                }
+                    ...ds,
+                    loadingStatus: 'failed' as const,
+                    loadingError: errorMessage,
+                  }
                 : ds
             )
           )
@@ -868,18 +868,18 @@ const SQLCockpitWrappedContent = ({
                 csvRows = sortedRows.map(rowIndex =>
                   queryResult.data[rowIndex]
                     ? queryResult.columns.map(col => {
-                      const value = queryResult.data[rowIndex][col.name]
-                      if (typeof value === 'bigint') {
-                        return value.toString()
-                      }
-                      if (
-                        typeof value === 'string' &&
-                        (value.includes(',') || value.includes('"'))
-                      ) {
-                        return `"${value.replace(/"/g, '""')}"`
-                      }
-                      return String(value ?? 'NULL')
-                    })
+                        const value = queryResult.data[rowIndex][col.name]
+                        if (typeof value === 'bigint') {
+                          return value.toString()
+                        }
+                        if (
+                          typeof value === 'string' &&
+                          (value.includes(',') || value.includes('"'))
+                        ) {
+                          return `"${value.replace(/"/g, '""')}"`
+                        }
+                        return String(value ?? 'NULL')
+                      })
                     : ([] as string[])
                 )
                 filename = `selected_rows_${Date.now()}.csv`

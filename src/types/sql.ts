@@ -546,7 +546,6 @@ export interface ColumnInfo {
  * Data source loading status
  */
 export type DataSourceLoadingStatus =
-  | 'idle'
   | 'loading'
   | 'loaded'
   | 'failed'

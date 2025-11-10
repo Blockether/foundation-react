@@ -254,7 +254,7 @@ export function DataSources({
           className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-50 flex flex-col min-h-[160px] overflow-visible"
         >
           {/* Header */}
-          <div className="px-3 py-2 border-b">
+          <div className="px-3 py-4 border-b">
             <h3 className="text-sm font-semibold">Data Sources</h3>
           </div>
 
@@ -323,59 +323,61 @@ export function DataSources({
                           role="menuitem"
                           disabled={isDisabled}
                           className={cn(
-                            'flex-1 text-left px-3 py-3 text-sm focus:outline-none transition-colors',
+                            'flex-1 text-left px-3 py-2 text-sm focus:outline-none transition-colors h-16 max-h-16',
                             !isDisabled && 'cursor-pointer hover:bg-muted',
                             isDisabled && 'opacity-50 cursor-not-allowed'
                           )}
                           onClick={() => handleDataSourceClick(dataSource)}
                         >
-                          <div className="flex items-start gap-3">
-                            <div className="mt-0.5">
+                          <div className="flex items-center gap-3 h-full overflow-hidden">
+                            <div className="flex-shrink-0">
                               {getDataSourceIcon(dataSource.type)}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <div className="font-medium truncate">
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="font-medium truncate overflow-hidden text-ellipsis max-w-[210px]">
                                   {dataSource.name}
                                 </div>
                                 {dataSource.file && (
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground flex-shrink-0">
                                     ({formatFileSize(dataSource.file.size)})
                                   </span>
                                 )}
                               </div>
-                              {dataSource.description && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {dataSource.description}
-                                </div>
-                              )}
-                              <div className="flex items-center mt-1 gap-1 text-xs text-muted-foreground">
-                                <span>Table:</span>
-                                <span className="font-mono bg-muted inline-block px-1">
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <span className="flex-shrink-0">Table:</span>
+                                <span className="font-mono bg-muted inline-block px-1 truncate overflow-hidden text-ellipsis max-w-[140px]">
                                   {dataSource.tableName}
                                 </span>
                                 {/* Status checkmark */}
                                 {isLoading && (
-                                  <span title="Loading...">
+                                  <span
+                                    title="Loading..."
+                                    className="flex-shrink-0"
+                                  >
                                     <Loader2 className="h-3 w-3 text-blue-500 animate-spin" />
                                   </span>
                                 )}
                                 {needsVerification && (
                                   <span
                                     title="Verification needed"
-                                    className="animate-pulse"
+                                    className="animate-pulse flex-shrink-0"
                                   >
                                     <HelpCircle className="h-3 w-3 text-yellow-600 dark:text-yellow-500" />
                                   </span>
                                 )}
-                                {dataSource.loadingStatus === 'loaded' && (
-                                  <span title="Loaded successfully">
+                                {(dataSource.loadingStatus === 'loaded' ||
+                                  !dataSource.loadingError) && (
+                                  <span
+                                    title="Loaded successfully"
+                                    className="flex-shrink-0"
+                                  >
                                     <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-500" />
                                   </span>
                                 )}
                                 {isFailed && (
                                   <span
-                                    className="cursor-help relative z-50"
+                                    className="cursor-help relative z-50 flex-shrink-0"
                                     title={
                                       dataSource.loadingError ||
                                       'Failed to load'

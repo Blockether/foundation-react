@@ -1,0 +1,20 @@
+{
+  "name": "shadowcljs-app",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "preinstall": "npx @tailwindcss/cli -i ./src/style.css -o ./public/style.css && cd ../.. && pnpm build && pnpm pack --pack-destination ."
+  },
+  "dependencies": {
+    "@blockether/foundation-react": "file:../../blockether-foundation-react-1.1.0.tgz",
+    "@monaco-editor/loader": "^1.6.1",
+    "apache-arrow": "^21.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.4.1",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "shadow-cljs": "3.2.1"
+  }
+}
