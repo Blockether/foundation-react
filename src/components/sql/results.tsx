@@ -149,7 +149,7 @@ function ResultsSelectionToolbar({
 }: ResultsSelectionToolbarProps): React.ReactNode {
   return (
     <div
-      className="sticky bottom-0 h-[68px] min-h-[68px] border-t backdrop-blur-sm z-[60] bg-background flex items-center justify-between px-3 py-4 flex-shrink-0"
+      className="sticky bottom-0 h-[68px] min-h-[68px] border-t border-b-2 backdrop-blur-sm z-[60] bg-background flex items-center justify-between px-3 py-2 flex-shrink-0"
       data-selection-toolbar="true"
     >
       {result && result.data.length > 0 && (
@@ -1542,7 +1542,7 @@ export function ResultsPanel({
                     <TableHead
                       key={index}
                       className={cn(
-                        'text-foreground h-10 px-3 text-left align-middle whitespace-nowrap border-y-2 font-bold transition-colors cursor-pointer select-none border-b-2 bg-muted/50 hover:bg-muted/50 border-r',
+                        'text-foreground h-10 px-3 text-left align-middle whitespace-nowrap border-y-2 font-bold transition-colors cursor-pointer select-none border-b-3 bg-muted/50 hover:bg-muted/50 border-r',
                         hoveredColumn === column.name
                           ? 'bg-primary/10'
                           : 'hover:bg-muted/50',
@@ -1653,9 +1653,9 @@ export function ResultsPanel({
 
   // Main render with animated state transitions
   return (
-    <div className='bg-background relative flex flex-col h-full'>
+    <div className='bg-background relative flex flex-col h-full max-h-[60vh]'>
       {/* Unified results summary toolbar - always present with consistent height */}
-      <div className="h-[68px] min-h-[68px] flex items-center justify-between px-3 py-4 bg-background border-t border-b transition-all duration-200 ease-in-out flex-shrink-0">
+      <div className="h-[68px] max-h-[68px] flex items-center justify-between px-3 py-2 bg-background border-t border-b transition-all duration-200 ease-in-out flex-shrink-0">
         <div className="flex items-center gap-3 text-xs min-w-0 flex-1 transition-all duration-200 ease-in-out">
           <span className="font-medium text-foreground transition-all duration-200 ease-in-out min-w-[92px] inline-block">
             {isLoading

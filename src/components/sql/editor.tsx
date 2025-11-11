@@ -489,7 +489,7 @@ export function SQLEditor({
       className={cn('relative', className)}
       style={
         {
-          height: '100%',
+          height: '35vh',
           userSelect: 'none',
           WebkitUserSelect: 'none',
           MozUserSelect: 'none',
