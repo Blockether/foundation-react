@@ -512,28 +512,44 @@ const SQLCockpitWrappedContent = ({
             `[DataSourceLoader] Processing: ${dataSource.name} (${dataSource.tableName})`
           )
 
-          // Skip if the table already exists (e.g., manually created or rehydrated state)
-          try {
-            await connection.query(
-              `SELECT 1 FROM ${dataSource.tableName} LIMIT 1`
-            )
-            console.log(
-              `[DataSourceLoader] Table ${dataSource.tableName} already exists, skipping load but marking as loaded`
-            )
-            loadedDataSourceIdsRef.current.add(dataSource.id)
-            setDataSources(prev =>
-              prev.map(ds =>
-                ds.id === dataSource.id
-                  ? { ...ds, loadingStatus: 'loaded' as const }
-                  : ds
+          // For data sources with URL, proceed directly to load (no need to verify existing table)
+          // For data sources without URL, verify if table already exists
+          if (!dataSource.url) {
+            // Skip if the table already exists (e.g., manually created or rehydrated state)
+            try {
+              await connection.query(
+                `SELECT 1 FROM ${dataSource.tableName} LIMIT 1`
               )
-            )
-            continue
-          } catch {
-            // Table doesn't exist, proceed with loading
-            console.log(
-              `[DataSourceLoader] Table ${dataSource.tableName} does not exist, proceeding with load`
-            )
+              console.log(
+                `[DataSourceLoader] Table ${dataSource.tableName} already exists, skipping load but marking as loaded`
+              )
+              loadedDataSourceIdsRef.current.add(dataSource.id)
+              setDataSources(prev =>
+                prev.map(ds =>
+                  ds.id === dataSource.id
+                    ? { ...ds, loadingStatus: 'loaded' as const }
+                    : ds
+                )
+              )
+              continue
+            } catch {
+              // Table doesn't exist, but we can't load it without URL, so mark as failed
+              console.log(
+                `[DataSourceLoader] Table ${dataSource.tableName} does not exist and no URL provided`
+              )
+              setDataSources(prev =>
+                prev.map(ds =>
+                  ds.id === dataSource.id
+                    ? {
+                      ...ds,
+                      loadingStatus: 'failed' as const,
+                      loadingError: `Table ${dataSource.tableName} does not exist and no URL provided to load it`,
+                    }
+                    : ds
+                )
+              )
+              continue
+            }
           }
 
           // Load from URL
@@ -541,6 +557,30 @@ const SQLCockpitWrappedContent = ({
             console.log(
               `[DataSourceLoader] Fetching from URL: ${dataSource.url}`
             )
+
+            // Check if table already exists before attempting to create
+            try {
+              await connection.query(
+                `SELECT 1 FROM ${dataSource.tableName} LIMIT 1`
+              )
+              console.log(
+                `[DataSourceLoader] Table ${dataSource.tableName} already exists, skipping URL load but marking as loaded`
+              )
+              loadedDataSourceIdsRef.current.add(dataSource.id)
+              setDataSources(prev =>
+                prev.map(ds =>
+                  ds.id === dataSource.id
+                    ? { ...ds, loadingStatus: 'loaded' as const }
+                    : ds
+                )
+              )
+              continue
+            } catch {
+              // Table doesn't exist, proceed with URL load
+              console.log(
+                `[DataSourceLoader] Table ${dataSource.tableName} doesn't exist yet, loading from URL`
+              )
+            }
             const response = await fetch(dataSource.url)
 
             if (!response.ok) {
@@ -682,10 +722,10 @@ const SQLCockpitWrappedContent = ({
             prev.map(ds =>
               ds.id === dataSource.id
                 ? {
-                    ...ds,
-                    loadingStatus: 'failed' as const,
-                    loadingError: errorMessage,
-                  }
+                  ...ds,
+                  loadingStatus: 'failed' as const,
+                  loadingError: errorMessage,
+                }
                 : ds
             )
           )
@@ -868,18 +908,18 @@ const SQLCockpitWrappedContent = ({
                 csvRows = sortedRows.map(rowIndex =>
                   queryResult.data[rowIndex]
                     ? queryResult.columns.map(col => {
-                        const value = queryResult.data[rowIndex][col.name]
-                        if (typeof value === 'bigint') {
-                          return value.toString()
-                        }
-                        if (
-                          typeof value === 'string' &&
-                          (value.includes(',') || value.includes('"'))
-                        ) {
-                          return `"${value.replace(/"/g, '""')}"`
-                        }
-                        return String(value ?? 'NULL')
-                      })
+                      const value = queryResult.data[rowIndex][col.name]
+                      if (typeof value === 'bigint') {
+                        return value.toString()
+                      }
+                      if (
+                        typeof value === 'string' &&
+                        (value.includes(',') || value.includes('"'))
+                      ) {
+                        return `"${value.replace(/"/g, '""')}"`
+                      }
+                      return String(value ?? 'NULL')
+                    })
                     : ([] as string[])
                 )
                 filename = `selected_rows_${Date.now()}.csv`
@@ -985,7 +1025,7 @@ const SQLCockpitWrappedContent = ({
 
   return (
     <div
-      className={cn('h-full p-2 relative')}
+      className={cn('h-full relative')}
       style={
         {
           userSelect: 'none',
@@ -1001,7 +1041,7 @@ const SQLCockpitWrappedContent = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="flex flex-col h-full bg-background border shadow-md">
+      <div className="flex flex-col h-full bg-background border">
         {/* Toolbar */}
 
         <SQLToolbar
@@ -1027,7 +1067,7 @@ const SQLCockpitWrappedContent = ({
         />
 
         {/* Main content area */}
-        <div className="flex flex-col flex-1 min-h-0 ">
+        <div className="flex flex-col flex-1 min-h-0">
           {/* SQL Editor */}
           <div className="flex-shrink-0 h-[240px]">
             <SQLEditor

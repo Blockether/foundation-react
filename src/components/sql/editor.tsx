@@ -154,10 +154,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ;(container.style as any).userSelect = 'auto'
-          ;(container.style as any).webkitUserSelect = 'auto'
-          ;(container.style as any).MozUserSelect = 'auto'
-          ;(container.style as any).msUserSelect = 'auto'
+          ; (container.style as any).userSelect = 'auto'
+            ; (container.style as any).webkitUserSelect = 'auto'
+            ; (container.style as any).MozUserSelect = 'auto'
+            ; (container.style as any).msUserSelect = 'auto'
         }
       })
 
@@ -169,10 +169,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ;(container.style as any).userSelect = 'none'
-          ;(container.style as any).webkitUserSelect = 'none'
-          ;(container.style as any).MozUserSelect = 'none'
-          ;(container.style as any).msUserSelect = 'none'
+          ; (container.style as any).userSelect = 'none'
+            ; (container.style as any).webkitUserSelect = 'none'
+            ; (container.style as any).MozUserSelect = 'none'
+            ; (container.style as any).msUserSelect = 'none'
         }
       })
 
@@ -394,10 +394,12 @@ export function SQLEditor({
       const placeholderElement = document.querySelector(
         '.monaco-placeholder'
       ) as HTMLElement | null
-      if (value) {
-        placeholderElement!.style.display = 'none'
-      } else {
-        placeholderElement!.style.display = 'block'
+      if (placeholderElement) {
+        if (value) {
+          placeholderElement!.style.display = 'none'
+        } else {
+          placeholderElement!.style.display = 'block'
+        }
       }
 
       // Call custom onMount callback
@@ -468,15 +470,17 @@ export function SQLEditor({
     const placeholder = document.querySelector(
       '.monaco-placeholder'
     ) as HTMLElement | null
-    if (!newValue) {
-      placeholder!.style.display = 'block'
-    } else {
-      placeholder!.style.display = 'none'
-    }
+    if (placeholder) {
+      if (!newValue) {
+        placeholder!.style.display = 'block'
+      } else {
+        placeholder!.style.display = 'none'
+      }
 
-    // Call parent onChange
-    if (newValue !== undefined) {
-      onChange(newValue)
+      // Call parent onChange
+      if (newValue !== undefined) {
+        onChange(newValue)
+      }
     }
   }
 

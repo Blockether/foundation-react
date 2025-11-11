@@ -62,6 +62,38 @@ interface ResultsPanelProps {
   analyticalQuery?: AnalyticalQuery | null
 }
 
+type PaginationControls = ReturnType<typeof usePagination>
+
+interface ResultsSelectionToolbarProps {
+  result: QueryResult | null
+  showCopyButton: boolean
+  selectedColumns: Set<number>
+  selectedRows: Set<number>
+  pagination: PaginationControls
+  isEditingPage: boolean
+  pageInput: string
+  pageInputRef: React.RefObject<HTMLInputElement>
+  onPageInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onPageInputBlur: () => void
+  onPageInputKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  onPageClick: () => void
+  onCopySelectedColumnsAsCSV: () => Promise<void>
+  onCopySelectedColumnsAsJSON: () => Promise<void>
+  onCopySelectedRowsAsCSV: () => Promise<void>
+  onCopySelectedRowsAsJSON: () => Promise<void>
+  onSaveAsCSV: () => Promise<void>
+  onSaveAsJSON: () => Promise<void>
+  onDownloadSelectedAsCSV: (
+    selectionType: 'columns' | 'rows'
+  ) => Promise<void>
+  onDownloadSelectedAsJSON: (
+    selectionType: 'columns' | 'rows'
+  ) => Promise<void>
+  onDownloadFullCSV: () => void
+  onDownloadFullJSON: () => void
+  onClearSelection: () => void
+}
+
 /**
  * State transition wrapper for smooth animations
  */
@@ -77,15 +109,286 @@ function StateTransition({
   return (
     <div
       className={cn(
-        'transition-all duration-300 ease-in-out',
+        'transition-opacity duration-200 ease-in-out',
         isVisible
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 -translate-y-2 pointer-events-none absolute inset-0',
+          ? 'opacity-100'
+          : 'opacity-0 pointer-events-none absolute inset-0',
         className
       )}
-      style={{ top: '32px' }}
+      style={{ top: '68px' }}
     >
       {children}
+    </div>
+  )
+}
+
+function ResultsSelectionToolbar({
+  result,
+  showCopyButton,
+  selectedColumns,
+  selectedRows,
+  pagination,
+  isEditingPage,
+  pageInput,
+  pageInputRef,
+  onPageInputChange,
+  onPageInputBlur,
+  onPageInputKeyDown,
+  onPageClick,
+  onCopySelectedColumnsAsCSV,
+  onCopySelectedColumnsAsJSON,
+  onCopySelectedRowsAsCSV,
+  onCopySelectedRowsAsJSON,
+  onSaveAsCSV,
+  onSaveAsJSON,
+  onDownloadSelectedAsCSV,
+  onDownloadSelectedAsJSON,
+  onDownloadFullCSV,
+  onDownloadFullJSON,
+  onClearSelection,
+}: ResultsSelectionToolbarProps): React.ReactNode {
+  return (
+    <div
+      className="sticky bottom-0 h-[68px] min-h-[68px] border-t backdrop-blur-sm z-[60] bg-background flex items-center justify-between px-3 py-4 flex-shrink-0"
+      data-selection-toolbar="true"
+    >
+      {result && result.data.length > 0 && (
+        <div className="flex items-center justify-between w-full h-full">
+          <div className="flex items-center gap-3 text-sm">
+            {showCopyButton && (
+              <span className="font-medium text-foreground">Text selected</span>
+            )}
+            {selectedColumns.size > 0 && (
+              <div className="flex items-center gap-2">
+                <Columns className="h-4 w-4" />
+                <span className="font-medium text-foreground">
+                  {selectedColumns.size} column
+                  {selectedColumns.size > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+            {selectedRows.size > 0 && (
+              <div className="flex items-center gap-2">
+                <Rows className="h-4 w-4" />
+                <span className="font-medium text-foreground">
+                  {selectedRows.size} row{selectedRows.size > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+            <span className="text-xs text-muted-foreground">
+              Showing{' '}
+              {pagination.isPaginationEnabled
+                ? `${pagination.startIndex + 1} - ${pagination.endIndex}`
+                : `1 - ${result?.data.length}`}{' '}
+              of {result?.data.length.toLocaleString()} rows
+            </span>
+          </div>
+
+          {pagination.isPaginationEnabled && (
+            <div className="flex items-center gap-2 pl-4 border-l border-border/60 mr-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => pagination.setCurrentPage(1)}
+                disabled={pagination.currentPage === 1}
+                className="h-8 w-8 p-0 rounded-sm cursor-pointer"
+                title="First page"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={pagination.prevPage}
+                disabled={pagination.currentPage === 1}
+                className="h-8 w-8 p-0 rounded-sm cursor-pointer"
+                title="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {isEditingPage ? (
+                <input
+                  ref={pageInputRef}
+                  type="number"
+                  min="1"
+                  max={pagination.totalPages}
+                  value={pageInput}
+                  onChange={onPageInputChange}
+                  onBlur={onPageInputBlur}
+                  onKeyDown={onPageInputKeyDown}
+                  className="w-16 h-8 px-2 text-sm border rounded bg-muted/50 text-foreground focus:outline-none focus:ring-2 focus:ring-ring text-center"
+                />
+              ) : (
+                <span
+                  className="text-sm text-foreground whitespace-nowrap px-2 cursor-pointer hover:bg-muted/50 rounded transition-colors"
+                  onClick={onPageClick}
+                  title="Click to jump to page"
+                >
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={pagination.nextPage}
+                disabled={pagination.currentPage === pagination.totalPages}
+                className="h-8 w-8 p-0 rounded-sm cursor-pointer"
+                title="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => pagination.setCurrentPage(pagination.totalPages)}
+                disabled={pagination.currentPage === pagination.totalPages}
+                className="h-8 w-8 p-0 rounded-sm cursor-pointer"
+                title="Last page"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 px-3 text-xs bg-green-500 text-white hover:bg-green-600 shadow-sm cursor-pointer rounded-sm !text-white"
+                    onMouseDown={e => e.stopPropagation()}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="z-[80]">
+                  {selectedColumns.size > 0 && (
+                    <>
+                      <DropdownMenuItem onClick={onCopySelectedColumnsAsCSV}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Copy as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onCopySelectedColumnsAsJSON}>
+                        <Braces className="h-4 w-4 mr-2" />
+                        Copy as JSON
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {selectedRows.size > 0 && (
+                    <>
+                      <DropdownMenuItem onClick={onCopySelectedRowsAsCSV}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Copy as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onCopySelectedRowsAsJSON}>
+                        <Braces className="h-4 w-4 mr-2" />
+                        Copy as JSON
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {selectedColumns.size === 0 && selectedRows.size === 0 && (
+                    <>
+                      <DropdownMenuItem onClick={onSaveAsCSV}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Copy as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onSaveAsJSON}>
+                        <Braces className="h-4 w-4 mr-2" />
+                        Copy as JSON
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 px-3 text-xs bg-blue-500 text-white hover:bg-blue-600 shadow-sm cursor-pointer rounded-sm !text-white"
+                    onMouseDown={e => e.stopPropagation()}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="z-[80]">
+                  {selectedColumns.size > 0 && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => onDownloadSelectedAsCSV('columns')}
+                        className="cursor-pointer"
+                      >
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Save as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onDownloadSelectedAsJSON('columns')}
+                        className="cursor-pointer"
+                      >
+                        <Braces className="h-4 w-4 mr-2" />
+                        Save as JSON
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {selectedRows.size > 0 && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => onDownloadSelectedAsCSV('rows')}
+                        className="cursor-pointer"
+                      >
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Save as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onDownloadSelectedAsJSON('rows')}
+                        className="cursor-pointer"
+                      >
+                        <Braces className="h-4 w-4 mr-2" />
+                        Save as JSON
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {selectedColumns.size === 0 && selectedRows.size === 0 && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={onDownloadFullCSV}
+                        className="cursor-pointer"
+                      >
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Save as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={onDownloadFullJSON}
+                        className="cursor-pointer"
+                      >
+                        <Braces className="h-4 w-4 mr-2" />
+                        Save as JSON
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {(selectedColumns.size > 0 || selectedRows.size > 0) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onClearSelection}
+                  className="h-8 px-3 text-xs bg-white hover:bg-gray-200 shadow-sm cursor-pointer rounded-sm dark:hover:bg-gray-700"
+                  onMouseDown={e => e.stopPropagation()}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -439,11 +742,11 @@ export function ResultsPanel({
     const rows = sortedRows.map(rowIndex =>
       result.data[rowIndex]
         ? result.columns.map(col => {
-            const value = result.data[rowIndex][col.name]
-            return typeof value === 'bigint'
-              ? value.toString()
-              : String(value ?? 'NULL')
-          })
+          const value = result.data[rowIndex][col.name]
+          return typeof value === 'bigint'
+            ? value.toString()
+            : String(value ?? 'NULL')
+        })
         : []
     )
 
@@ -542,11 +845,11 @@ export function ResultsPanel({
       const rows = sortedRows.map(rowIndex =>
         result.data[rowIndex]
           ? result.columns.map(col => {
-              const value = result.data[rowIndex][col.name]
-              return typeof value === 'bigint'
-                ? value.toString()
-                : String(value ?? 'NULL')
-            })
+            const value = result.data[rowIndex][col.name]
+            return typeof value === 'bigint'
+              ? value.toString()
+              : String(value ?? 'NULL')
+          })
           : []
       )
       const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
@@ -628,6 +931,40 @@ export function ResultsPanel({
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  }
+
+  const handleDownloadFullResultAsCSV = (): void => {
+    if (!result) return
+
+    const headers = result.columns.map(col => col.name)
+    const rows = result.data.map((row: Record<string, unknown>) =>
+      result.columns.map(col => {
+        const value = row[col.name]
+        return typeof value === 'bigint'
+          ? value.toString()
+          : String(value ?? 'NULL')
+      })
+    )
+
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
+    downloadFile(csvContent, `results_${Date.now()}.csv`, 'text/csv')
+    toast.success(`Full dataset (${result.data.length} rows) saved as CSV`)
+  }
+
+  const handleDownloadFullResultAsJSON = (): void => {
+    if (!result) return
+
+    const jsonContent = JSON.stringify(
+      result.data,
+      (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
+      2
+    )
+    downloadFile(
+      jsonContent,
+      `results_${Date.now()}.json`,
+      'application/json'
+    )
+    toast.success(`Full dataset (${result.data.length} rows) saved as JSON`)
   }
 
   const saveAsJSON = async (): Promise<void> => {
@@ -936,7 +1273,7 @@ export function ResultsPanel({
 
   // Loading state content without header (for unified toolbar)
   const loadingContentNoHeader = (
-    <div className="overflow-y-auto bg-muted/50 text-foreground flex-1 flex-grow min-h-[400px]">
+    <div className="overflow-y-auto bg-background text-foreground flex-1 flex-grow min-h-[400px]">
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto">
@@ -1090,7 +1427,7 @@ export function ResultsPanel({
 
   // No results state content without header (for unified toolbar)
   const noResultsContentNoHeader = (
-    <div className="overflow-y-auto flex-1 flex-grow min-h-[400px]">
+    <div className="overflow-y-auto bg-background flex-1 flex-grow min-h-[400px]">
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto border">
@@ -1122,8 +1459,8 @@ export function ResultsPanel({
 
   // Empty result set content without header (for unified toolbar)
   const emptyResultContentNoHeader = (
-    <div className="overflow-y-auto flex-1 flex-grow min-h-[400px]">
-      <div className="flex items-center justify-center min-h-[400px] bg-gradient-to-b from-background to-muted/10">
+    <div className="overflow-y-auto bg-background flex-1 flex-grow min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="flex items-center justify-center w-12 h-12 bg-muted/30 rounded-full mb-3 mx-auto border">
             <svg
@@ -1210,7 +1547,7 @@ export function ResultsPanel({
                           ? 'bg-primary/10'
                           : 'hover:bg-muted/50',
                         selectedColumns.has(index) &&
-                          'bg-primary/20 ring-2 ring-primary/50',
+                        'bg-primary/20 ring-2 ring-primary/50',
                         selectionMode === 'column' && 'hover:bg-primary/30'
                       )}
                       style={{ minWidth: `${MIN_COLUMN_WIDTH}px` }}
@@ -1311,318 +1648,16 @@ export function ResultsPanel({
           </Table>
         </div>
       </div>
-
-      {/* Selection toolbar - always present */}
-      <div
-        className="sticky bottom-0 h-[68px] border-t backdrop-blur-sm z-[60] bg-muted/50 flex items-center justify-between px-3 py-4"
-        data-selection-toolbar="true"
-      >
-        {result && result.data.length > 0 && (
-          <div className="flex items-center justify-between w-full h-full">
-            {/* Left side - Info */}
-            <div className="flex items-center gap-3 text-sm">
-              {showCopyButton && (
-                <span className="font-medium text-foreground">
-                  Text selected
-                </span>
-              )}
-              {selectedColumns.size > 0 && (
-                <div className="flex items-center gap-2">
-                  <Columns className="h-4 w-4" />
-                  <span className="font-medium text-foreground">
-                    {selectedColumns.size} column
-                    {selectedColumns.size > 1 ? 's' : ''}
-                  </span>
-                </div>
-              )}
-              {selectedRows.size > 0 && (
-                <div className="flex items-center gap-2">
-                  <Rows className="h-4 w-4" />
-                  <span className="font-medium text-foreground">
-                    {selectedRows.size} row{selectedRows.size > 1 ? 's' : ''}
-                  </span>
-                </div>
-              )}
-              <span className="text-xs text-muted-foreground">
-                Showing{' '}
-                {pagination.isPaginationEnabled
-                  ? `${pagination.startIndex + 1} - ${pagination.endIndex}`
-                  : `1 - ${result?.data.length}`}{' '}
-                of {result?.data.length.toLocaleString()} rows
-              </span>
-            </div>
-
-            {/* Right side - Pagination + Actions */}
-
-            {pagination.isPaginationEnabled && (
-              <div className="flex items-center gap-2 pl-4 border-l border-border/60 mr-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => pagination.setCurrentPage(1)}
-                  disabled={pagination.currentPage === 1}
-                  className="h-8 w-8 p-0 rounded-sm cursor-pointer"
-                  title="First page"
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={pagination.prevPage}
-                  disabled={pagination.currentPage === 1}
-                  className="h-8 w-8 p-0 rounded-sm cursor-pointer"
-                  title="Previous page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {isEditingPage ? (
-                  <input
-                    ref={pageInputRef}
-                    type="number"
-                    min="1"
-                    max={pagination.totalPages}
-                    value={pageInput}
-                    onChange={handlePageInputChange}
-                    onBlur={handlePageInputBlur}
-                    onKeyDown={handlePageInputKeyDown}
-                    className="w-16 h-8 px-2 text-sm border rounded bg-muted/50 text-foreground focus:outline-none focus:ring-2 focus:ring-ring text-center"
-                  />
-                ) : (
-                  <span
-                    className="text-sm text-foreground whitespace-nowrap px-2 cursor-pointer hover:bg-muted/50 rounded transition-colors"
-                    onClick={handlePageClick}
-                    title="Click to jump to page"
-                  >
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={pagination.nextPage}
-                  disabled={pagination.currentPage === pagination.totalPages}
-                  className="h-8 w-8 p-0 rounded-sm cursor-pointer"
-                  title="Next page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    pagination.setCurrentPage(pagination.totalPages)
-                  }
-                  disabled={pagination.currentPage === pagination.totalPages}
-                  className="h-8 w-8 p-0 rounded-sm cursor-pointer"
-                  title="Last page"
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                {/* Copy button */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 px-3 text-xs bg-green-500 text-white hover:bg-green-600 shadow-sm cursor-pointer rounded-sm !text-white"
-                      onMouseDown={e => e.stopPropagation()}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {selectedColumns.size > 0 && (
-                      <>
-                        <DropdownMenuItem onClick={copySelectedColumnsAsCSV}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Copy as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={copySelectedColumnsAsJSON}>
-                          <Braces className="h-4 w-4 mr-2" />
-                          Copy as JSON
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    {selectedRows.size > 0 && (
-                      <>
-                        <DropdownMenuItem onClick={copySelectedRowsAsCSV}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Copy as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={copySelectedRowsAsJSON}>
-                          <Braces className="h-4 w-4 mr-2" />
-                          Copy as JSON
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    {selectedColumns.size === 0 && selectedRows.size === 0 && (
-                      <>
-                        <DropdownMenuItem onClick={saveAsCSV}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Copy as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={saveAsJSON}>
-                          <Braces className="h-4 w-4 mr-2" />
-                          Copy as JSON
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Save button */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 px-3 text-xs bg-blue-500 text-white hover:bg-blue-600 shadow-sm cursor-pointer rounded-sm !text-white"
-                      onMouseDown={e => e.stopPropagation()}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    {selectedColumns.size > 0 && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => downloadSelectedAsCSV('columns')}
-                          className="cursor-pointer"
-                        >
-                          <FileSpreadsheet className="h-4 w-4 mr-2" />
-                          Save as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => downloadSelectedAsJSON('columns')}
-                          className="cursor-pointer"
-                        >
-                          <Braces className="h-4 w-4 mr-2" />
-                          Save as JSON
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    {selectedRows.size > 0 && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => downloadSelectedAsCSV('rows')}
-                          className="cursor-pointer"
-                        >
-                          <FileSpreadsheet className="h-4 w-4 mr-2" />
-                          Save as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => downloadSelectedAsJSON('rows')}
-                          className="cursor-pointer"
-                        >
-                          <Braces className="h-4 w-4 mr-2" />
-                          Save as JSON
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    {selectedColumns.size === 0 && selectedRows.size === 0 && (
-                      <>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const headers = result.columns.map(col => col.name)
-                            const rows = result.data.map(
-                              (row: Record<string, unknown>) =>
-                                result.columns.map(col => {
-                                  const value = row[col.name]
-                                  return typeof value === 'bigint'
-                                    ? value.toString()
-                                    : String(value ?? 'NULL')
-                                })
-                            )
-                            const csvContent = [headers, ...rows]
-                              .map(row => row.join(','))
-                              .join('\n')
-                            downloadFile(
-                              csvContent,
-                              `results_${Date.now()}.csv`,
-                              'text/csv'
-                            )
-                            toast.success(
-                              `Full dataset (${result.data.length} rows) saved as CSV`
-                            )
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <FileSpreadsheet className="h-4 w-4 mr-2" />
-                          Save as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const jsonContent = JSON.stringify(
-                              result.data,
-                              (_key, value) =>
-                                typeof value === 'bigint'
-                                  ? value.toString()
-                                  : value,
-                              2
-                            )
-                            downloadFile(
-                              jsonContent,
-                              `results_${Date.now()}.json`,
-                              'application/json'
-                            )
-                            toast.success(
-                              `Full dataset (${result.data.length} rows) saved as JSON`
-                            )
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <Braces className="h-4 w-4 mr-2" />
-                          Save as JSON
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Clear button - only show when there are selections */}
-                {(selectedColumns.size > 0 || selectedRows.size > 0) && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={clearSelection}
-                    className="h-8 px-3 text-xs bg-white hover:bg-gray-200 shadow-sm cursor-pointer rounded-sm dark:hover:bg-gray-700"
-                    onMouseDown={e => e.stopPropagation()}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Clear
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Accessibility announcement */}
-      <div role="status" aria-live="polite" className="sr-only">
-        Query completed successfully. {result?.data.length} rows returned.
-      </div>
     </div>
   )
 
   // Main render with animated state transitions
   return (
-    <div
-      className={cn('bg-muted/50 relative flex flex-col h-full', className)}
-      style={{ maxHeight }}
-      data-results-panel="true"
-    >
+    <div className='bg-background relative flex flex-col h-full'>
       {/* Unified results summary toolbar - always present with consistent height */}
-      <div className="h-8 flex items-center justify-between px-3 bg-muted/50 border-t border-b">
-        <div className="flex items-center gap-3 text-xs">
-          <span className="font-medium text-foreground transition-all duration-300 ease-in-out">
+      <div className="h-[68px] min-h-[68px] flex items-center justify-between px-3 py-4 bg-background border-t border-b transition-all duration-200 ease-in-out flex-shrink-0">
+        <div className="flex items-center gap-3 text-xs min-w-0 flex-1 transition-all duration-200 ease-in-out">
+          <span className="font-medium text-foreground transition-all duration-200 ease-in-out min-w-[140px] inline-block">
             {isLoading
               ? 'Executing Query...'
               : error
@@ -1635,11 +1670,11 @@ export function ResultsPanel({
                       ? `${result.rowCount.toLocaleString()} rows affected`
                       : `${result.data.length.toLocaleString()} rows returned`}
           </span>
-          <span className="text-muted-foreground transition-all duration-300 ease-in-out">
+          <span className="text-muted-foreground transition-all duration-200 ease-in-out min-w-[80px] inline-block">
             {!error && result?.columns && <>{result.columns.length} columns</>}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0 transition-all duration-200 ease-in-out">
           {/* Analytical query toggle button */}
           {analyticalQuery && result && result.data.length > 0 && (
             <div className="flex items-center bg-muted/50 border-1 rounded-sm">
@@ -1670,32 +1705,70 @@ export function ResultsPanel({
           </div>
         </div>
       </div>
-
-      <StateTransition isVisible={isLoading}>
-        {loadingContentNoHeader}
-      </StateTransition>
-
-      <StateTransition isVisible={!!error}>
-        {errorContentNoHeader}
-      </StateTransition>
-
-      <StateTransition isVisible={!result && !isLoading && !error}>
-        {noResultsContentNoHeader}
-      </StateTransition>
-
-      <StateTransition
-        isVisible={!!result && result.data.length === 0 && !isLoading && !error}
+      <div
+        className={cn('overflow-y-auto', className)}
+        style={{ maxHeight }}
+        data-results-panel="true"
       >
-        {emptyResultContentNoHeader}
-      </StateTransition>
 
-      <StateTransition
-        isVisible={!!result && result.data.length > 0 && !isLoading && !error}
-      >
-        {analyticalQuery && showChartView
-          ? analyticalChartContent
-          : resultsTableContent}
-      </StateTransition>
+        <StateTransition isVisible={isLoading}>
+          {loadingContentNoHeader}
+        </StateTransition>
+
+        <StateTransition isVisible={!!error}>
+          {errorContentNoHeader}
+        </StateTransition>
+
+        <StateTransition isVisible={!result && !isLoading && !error}>
+          {noResultsContentNoHeader}
+        </StateTransition>
+
+        <StateTransition
+          isVisible={!!result && result.data.length === 0 && !isLoading && !error}
+        >
+          {emptyResultContentNoHeader}
+        </StateTransition>
+
+        <StateTransition
+          isVisible={!!result && result.data.length > 0 && !isLoading && !error}
+        >
+          {analyticalQuery && showChartView
+            ? analyticalChartContent
+            : resultsTableContent}
+        </StateTransition>
+      </div>
+
+      {/* Selection toolbar - always present */}
+      <ResultsSelectionToolbar
+        result={result}
+        showCopyButton={showCopyButton}
+        selectedColumns={selectedColumns}
+        selectedRows={selectedRows}
+        pagination={pagination}
+        isEditingPage={isEditingPage}
+        pageInput={pageInput}
+        pageInputRef={pageInputRef}
+        onPageInputChange={handlePageInputChange}
+        onPageInputBlur={handlePageInputBlur}
+        onPageInputKeyDown={handlePageInputKeyDown}
+        onPageClick={handlePageClick}
+        onCopySelectedColumnsAsCSV={copySelectedColumnsAsCSV}
+        onCopySelectedColumnsAsJSON={copySelectedColumnsAsJSON}
+        onCopySelectedRowsAsCSV={copySelectedRowsAsCSV}
+        onCopySelectedRowsAsJSON={copySelectedRowsAsJSON}
+        onSaveAsCSV={saveAsCSV}
+        onSaveAsJSON={saveAsJSON}
+        onDownloadSelectedAsCSV={downloadSelectedAsCSV}
+        onDownloadSelectedAsJSON={downloadSelectedAsJSON}
+        onDownloadFullCSV={handleDownloadFullResultAsCSV}
+        onDownloadFullJSON={handleDownloadFullResultAsJSON}
+        onClearSelection={clearSelection}
+      />
+
+      {/* Accessibility announcement */}
+      <div role="status" aria-live="polite" className="sr-only">
+        Query completed successfully. {result?.data.length} rows returned.
+      </div>
     </div>
   )
 }

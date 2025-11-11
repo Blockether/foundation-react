@@ -41,8 +41,8 @@ export interface DataSourcesProps {
   onImportFile?: ((file: File) => Promise<void>) | undefined
   onSelectDataSource?: ((dataSource: DataSource) => void) | undefined
   onExecuteAnalyticalQuery?:
-    | ((query: AnalyticalQuery, dataSource?: DataSource) => Promise<void>)
-    | undefined
+  | ((query: AnalyticalQuery, dataSource?: DataSource) => Promise<void>)
+  | undefined
   onRemoveDataSource?: ((dataSource: DataSource) => void) | undefined
   className?: string
   /**
@@ -323,7 +323,7 @@ export function DataSources({
                           role="menuitem"
                           disabled={isDisabled}
                           className={cn(
-                            'flex-1 text-left px-3 py-2 text-sm focus:outline-none transition-colors h-16 max-h-16',
+                            'flex-1 text-left px-3 py-2 text-sm focus:outline-none transition-colors h-16 max-h-16 w-[246px]',
                             !isDisabled && 'cursor-pointer hover:bg-muted',
                             isDisabled && 'opacity-50 cursor-not-allowed'
                           )}
@@ -366,15 +366,14 @@ export function DataSources({
                                     <HelpCircle className="h-3 w-3 text-yellow-600 dark:text-yellow-500" />
                                   </span>
                                 )}
-                                {(dataSource.loadingStatus === 'loaded' ||
-                                  !dataSource.loadingError) && (
-                                  <span
-                                    title="Loaded successfully"
-                                    className="flex-shrink-0"
-                                  >
-                                    <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-500" />
-                                  </span>
-                                )}
+                                {dataSource.loadingStatus === 'loaded' && (
+                                    <span
+                                      title="Loaded successfully"
+                                      className="flex-shrink-0"
+                                    >
+                                      <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-500" />
+                                    </span>
+                                  )}
                                 {isFailed && (
                                   <span
                                     className="cursor-help relative z-50 flex-shrink-0"
@@ -410,13 +409,13 @@ export function DataSources({
 
                         {/* Analyze button */}
                         {hasAnalysis && !isDisabled && (
-                          <div className="px-2">
+                          <div className="px-2 cursor-pointer">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-7 w-7 p-0 hover:bg-muted/50 cursor-pointer"
+                                  className="h-16 w-16 p-0 bg-background transition-colors cursor-pointer"
                                   title="Analyze data"
                                 >
                                   <BarChart3 className="h-4 w-4" />

@@ -212,7 +212,7 @@ export function SQLToolbar({
     <>
       <div
         className={cn(
-          'flex items-center justify-between px-4 py-3 border-b shadow-md backdrop-blur-sm z-[50] rounded-t',
+          'flex items-center justify-between px-4 py-3 border-b z-[50] rounded-t',
           className
         )}
         role="toolbar"
@@ -241,10 +241,10 @@ export function SQLToolbar({
                   : isInterrupting
                     ? 'bg-yellow-500 text-black hover:bg-yellow-600'
                     : cn(
-                        'bg-green-500 text-white hover:bg-green-700',
-                        // Subtle animation effect
-                        isPlayAnimating && 'bg-green-600'
-                      )
+                      'bg-green-500 text-white hover:bg-green-700',
+                      // Subtle animation effect
+                      isPlayAnimating && 'bg-green-600'
+                    )
               )}
               aria-label={
                 isRunning ? 'Cancel query' : 'Run SQL Query (Ctrl+Enter)'
