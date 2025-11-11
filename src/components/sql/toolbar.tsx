@@ -8,7 +8,7 @@
 import React, { useEffect, useState } from 'react'
 
 // Lucide React icons
-import { Play, Square, Sparkles, HelpCircle, BarChart3 } from 'lucide-react'
+import { Play, Square, Sparkles, HelpCircle, BarChart3, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SavedQueries } from './saved'
@@ -28,12 +28,14 @@ interface SQLToolbarProps {
   onFormatQuery: () => void
   onHelp?: () => void
   onSaveResults?: () => void
+  onAIAssist?: () => void
 
   // State
   queryState: DuckDBQueryState
   queryResult?: QueryResult | null
   queryError?: any
   query?: string // Current query content for format button validation
+  hasLLMCompletion?: boolean // Whether LLM completion function is available
 
   // Saved queries
   savedQueries: SavedQuery[]
@@ -69,10 +71,12 @@ export function SQLToolbar({
   onFormatQuery,
   onHelp,
   onSaveResults,
+  onAIAssist,
   queryState,
   queryResult,
   queryError,
   query = '',
+  hasLLMCompletion = false,
   savedQueries = [],
   onSavedQuerySelect,
   dataSources = [],
@@ -301,6 +305,22 @@ export function SQLToolbar({
               <span className="sr-only">Format Query</span>
             </Button>
           </div>
+
+          {/* AI Assist button */}
+          {hasLLMCompletion && onAIAssist && (
+            <div title="AI-assisted query generation">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={onAIAssist}
+                className="hover:cursor-pointer text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+                aria-label="AI-assisted query generation"
+              >
+                <Wand2 className="h-4 w-4" />
+                <span className="sr-only">AI Assist</span>
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Center - Analytical Query Indicator */}

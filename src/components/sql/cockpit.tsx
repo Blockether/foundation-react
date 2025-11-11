@@ -36,8 +36,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { Textarea } from '@/components/ui/textarea'
+import { Loader2 } from 'lucide-react'
 
 /**
  * Helper component to display table/data source names with styling
@@ -58,6 +61,7 @@ export function SQLCockpit({
   analyticalQueries,
   initialDataSources,
   autoCleanupRemovedDataSources = false,
+  llmCompletionFunction,
 }: SQLCockpitProps): React.ReactNode {
   return (
     <SQLCockpitWrappedContent
@@ -67,6 +71,7 @@ export function SQLCockpit({
       {...(analyticalQueries && { analyticalQueries })}
       {...(initialDataSources && { initialDataSources })}
       {...(autoCleanupRemovedDataSources && { autoCleanupRemovedDataSources })}
+      {...(llmCompletionFunction && { llmCompletionFunction })}
     />
   )
 }
@@ -78,6 +83,7 @@ const SQLCockpitWrappedContent = ({
   analyticalQueries,
   initialDataSources,
   autoCleanupRemovedDataSources,
+  llmCompletionFunction,
 }: {
   initialQuery: string
   placeholder?: string
@@ -85,12 +91,24 @@ const SQLCockpitWrappedContent = ({
   analyticalQueries?: AnalyticalQuery[]
   initialDataSources?: DataSource[]
   autoCleanupRemovedDataSources?: boolean
+  llmCompletionFunction?: (params: {
+    userRequest: string
+    dataSources: Array<{
+      name: string
+      tableName: string
+      schema?: any[]
+    }>
+    currentQuery: string
+  }) => Promise<string>
 }): React.ReactNode => {
   // SQL editor state
   const [query, setQuery] = useState(initialQuery)
   const queryRef = useRef(query)
   const [showHelpDialog, setShowHelpDialog] = useState(false)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [showAIAssistDialog, setShowAIAssistDialog] = useState(false)
+  const [aiUserRequest, setAiUserRequest] = useState('')
+  const [isGeneratingQuery, setIsGeneratingQuery] = useState(false)
 
   // Keep queryRef in sync with query state
   React.useEffect(() => {
@@ -217,6 +235,111 @@ const SQLCockpitWrappedContent = ({
   const handleCloseHelp = useCallback((): void => {
     setShowHelpDialog(false)
   }, [])
+
+  // Show AI assist dialog
+  const handleShowAIAssist = useCallback((): void => {
+    setShowAIAssistDialog(true)
+    setAiUserRequest('')
+  }, [])
+
+  // Handle AI query generation
+  const handleGenerateAIQuery = useCallback(async (): Promise<void> => {
+    if (!llmCompletionFunction || !aiUserRequest.trim()) {
+      return
+    }
+
+    setIsGeneratingQuery(true)
+
+    try {
+      console.log('🤖 AI Assistant - Starting data source preparation')
+      console.log('📊 Available data sources:', dataSources.length)
+      console.log('📋 Data sources details:', dataSources.map(ds => ({
+        name: ds.name,
+        tableName: ds.tableName,
+        loadingStatus: ds.loadingStatus,
+        schemaColumns: ds.schema?.length || 0
+      })))
+
+      // Prepare data source information with sample data
+      const dataSourcesInfo = await Promise.all(
+        dataSources
+          .filter(ds => {
+            console.log(`🔍 Checking data source: ${ds.name}, status: ${ds.loadingStatus}`)
+            return ds.loadingStatus === 'loaded'
+          })
+          .map(async (ds) => {
+            const dsInfo: any = {
+              name: ds.name,
+              tableName: ds.tableName,
+              ...(ds.schema && { schema: ds.schema }),
+            }
+
+            // Fetch sample data (5 rows) for this table
+            try {
+              if (!connection) {
+                throw new Error('No connection available')
+              }
+
+              console.log(`🔍 Fetching sample data for table: ${ds.tableName}`)
+              const sampleQuery = `SELECT * FROM "${ds.tableName}" LIMIT 5`
+              console.log(`📝 Sample query: ${sampleQuery}`)
+
+              const sampleResult = await transformDuckDBResult(connection, sampleQuery, Date.now())
+              console.log(`📊 Sample result:`, sampleResult)
+
+              if (sampleResult.data && sampleResult.data.length > 0) {
+                dsInfo.sampleData = sampleResult.data
+              }
+            } catch (error) {
+              console.warn(`Failed to fetch sample data for ${ds.tableName}:`, error)
+            }
+
+            return dsInfo
+          })
+      )
+
+      console.log('📈 Prepared data sources for LLM:', dataSourcesInfo.map(ds => ({
+        name: ds.name,
+        tableName: ds.tableName,
+        hasSchema: !!ds.schema,
+        schemaColumns: ds.schema?.length || 0,
+        hasSampleData: !!ds.sampleData,
+        sampleDataRows: ds.sampleData?.length || 0
+      })))
+
+      // Call the LLM completion function
+      const generatedQuery = await llmCompletionFunction({
+        userRequest: aiUserRequest,
+        dataSources: dataSourcesInfo,
+        currentQuery: queryRef.current,
+      })
+
+      // Update the query in the editor
+      setQuery(generatedQuery)
+
+      // Hide placeholder
+      const editorPlaceholder = document.querySelector('.monaco-placeholder')
+      if (editorPlaceholder) {
+        editorPlaceholder.setAttribute('style', 'display: none !important;')
+      }
+
+      // Close dialog
+      setShowAIAssistDialog(false)
+      setAiUserRequest('')
+
+      toast.success('AI-generated query inserted successfully')
+    } catch (error) {
+      console.error('Failed to generate AI query:', error)
+      toast.error(
+        <span>
+          Failed to generate query:{' '}
+          {error instanceof Error ? error.message : 'Unknown error'}
+        </span>
+      )
+    } finally {
+      setIsGeneratingQuery(false)
+    }
+  }, [llmCompletionFunction, aiUserRequest, dataSources])
 
   // Handle saved query selection
   const handleSavedQuerySelect = useCallback(
@@ -512,6 +635,146 @@ const SQLCockpitWrappedContent = ({
             `[DataSourceLoader] Processing: ${dataSource.name} (${dataSource.tableName})`
           )
 
+          // Load from raw data first (highest priority)
+          if (dataSource.data && dataSource.data.length > 0) {
+            // Create a temporary CSV from the data
+            const columns = Object.keys(dataSource.data[0])
+            const csvHeaders = columns.join(',')
+            const csvRows = dataSource.data.map(row =>
+              columns
+                .map(col => {
+                  const value = row[col]
+
+                  // Handle arrays by joining with semicolon and wrapping in quotes
+                  if (Array.isArray(value)) {
+                    const arrayString = value.join('; ')
+                    return `"${arrayString.replace(/"/g, '""')}"`
+                  }
+
+                  // Handle strings that contain commas or quotes
+                  if (
+                    typeof value === 'string' &&
+                    (value.includes(',') || value.includes('"') || value.includes('\n'))
+                  ) {
+                    return `"${value.replace(/"/g, '""')}"`
+                  }
+
+                  // Handle null/undefined values
+                  if (value === null || value === undefined) {
+                    return ''
+                  }
+
+                  return String(value)
+                })
+                .join(',')
+            )
+            const csvContent = [csvHeaders, ...csvRows].join('\n')
+
+
+            // Register as a temporary file in DuckDB
+            const tempFileName = `${dataSource.tableName}.csv`
+            const encoder = new TextEncoder()
+            const uint8Array = encoder.encode(csvContent)
+            await db.registerFileBuffer(tempFileName, uint8Array)
+
+            // Debug: Log the actual CSV content being generated
+            console.log(
+              `[DataSourceLoader] Generated CSV headers: "${csvHeaders}"`
+            )
+            console.log(
+              `[DataSourceLoader] Number of header columns: ${columns.length}`
+            )
+            console.log(
+              `[DataSourceLoader] First CSV row: "${csvRows[0]}"`
+            )
+            console.log(
+              `[DataSourceLoader] Number of values in first row: ${csvRows[0]?.split(',').length}`
+            )
+            console.log(
+              `[DataSourceLoader] Sample object keys: ${Object.keys(dataSource.data[0]).join(', ')}`
+            )
+            console.log(
+              `[DataSourceLoader] Sample skills value:`, dataSource.data[0]?.skills
+            )
+            console.log(
+              `[DataSourceLoader] Sample skills type:`, typeof dataSource.data[0]?.skills
+            )
+            console.log(
+              `[DataSourceLoader] Full first object:`, dataSource.data[0]
+            )
+
+            // Create table using the exact same approach as regular CSV files
+            await connection.query(
+              `CREATE OR REPLACE TABLE ${dataSource.tableName} AS SELECT * FROM read_csv('${tempFileName}', AUTO_DETECT=TRUE)`
+            )
+
+            // Verify the table was created with proper column names
+            const tableInfo = await connection.query(`PRAGMA table_info('${dataSource.tableName}')`)
+            const actualColumns = tableInfo.toArray().map((row: any) => row.name)
+            console.log(
+              `[DataSourceLoader] Table ${dataSource.tableName} created with columns:`,
+              actualColumns
+            )
+
+            // If columns are still generic, recreate with explicit definitions
+            if (actualColumns.some(col => col.startsWith('column'))) {
+              console.log(`[DataSourceLoader] Detected generic column names, recreating table with explicit definitions...`)
+
+              // Drop the table and recreate with explicit column definitions
+              await connection.query(`DROP TABLE IF EXISTS ${dataSource.tableName}`)
+
+              const columnDefs = columns.map(col => `"${col}" VARCHAR`).join(', ')
+              await connection.query(`CREATE TABLE ${dataSource.tableName} (${columnDefs})`)
+
+              // Insert data using the CSV
+              await connection.query(
+                `INSERT INTO ${dataSource.tableName} SELECT * FROM read_csv('${tempFileName}', AUTO_DETECT=TRUE)`
+              )
+
+              console.log(`[DataSourceLoader] Recreated table with explicit column definitions`)
+            }
+
+            // Clean up temp file
+            await db.dropFile(tempFileName)
+
+            console.log(
+              `[DataSourceLoader] Created table ${dataSource.tableName} from raw data (${dataSource.data.length} rows)`
+            )
+
+            // Update schema information
+            const schemaResult = await connection.query(`
+              SELECT column_name, data_type, is_nullable
+              FROM information_schema.columns
+              WHERE table_name = '${dataSource.tableName}'
+              ORDER BY ordinal_position
+            `)
+
+            const schema = schemaResult.toArray().map((row: any) => ({
+              name: row.column_name as string,
+              type: row.data_type as string,
+              nullable: (row.is_nullable as string).toUpperCase() === 'YES',
+            }))
+
+            loadedDataSourceIdsRef.current.add(dataSource.id)
+            setDataSources(prev =>
+              prev.map(ds => {
+                if (ds.id === dataSource.id) {
+                  const { loadingError, ...rest } = ds
+                  return { ...rest, loadingStatus: 'loaded' as const, schema }
+                }
+                return ds
+              })
+            )
+
+            // Commented out toast for less intrusive loading
+            // toast.success(
+            //   <span>
+            //     Loaded table <TableName>{dataSource.tableName}</TableName>
+            //   </span>
+            // )
+            continue
+          }
+
           // For data sources with URL, proceed directly to load (no need to verify existing table)
           // For data sources without URL, verify if table already exists
           if (!dataSource.url) {
@@ -649,62 +912,6 @@ const SQLCockpitWrappedContent = ({
             //   </span>
             // )
             continue
-          }
-
-          // Load from raw data
-          if (dataSource.data && dataSource.data.length > 0) {
-            // Create a temporary CSV from the data
-            const columns = Object.keys(dataSource.data[0])
-            const csvHeaders = columns.join(',')
-            const csvRows = dataSource.data.map(row =>
-              columns
-                .map(col => {
-                  const value = row[col]
-                  if (
-                    typeof value === 'string' &&
-                    (value.includes(',') || value.includes('"'))
-                  ) {
-                    return `"${value.replace(/"/g, '""')}"`
-                  }
-                  return String(value ?? '')
-                })
-                .join(',')
-            )
-            const csvContent = [csvHeaders, ...csvRows].join('\n')
-
-            // Register as a temporary file in DuckDB
-            const tempFileName = `${dataSource.tableName}.csv`
-            const encoder = new TextEncoder()
-            const uint8Array = encoder.encode(csvContent)
-            await db.registerFileBuffer(tempFileName, uint8Array)
-
-            // Create table from CSV
-            await connection.query(
-              `CREATE TABLE ${dataSource.tableName} AS SELECT * FROM read_csv('${tempFileName}', AUTO_DETECT=TRUE)`
-            )
-
-            // Clean up temp file
-            await db.dropFile(tempFileName)
-
-            loadedDataSourceIdsRef.current.add(dataSource.id)
-
-            // Mark as loaded
-            setDataSources(prev =>
-              prev.map(ds => {
-                if (ds.id === dataSource.id) {
-                  const { loadingError, ...rest } = ds
-                  return { ...rest, loadingStatus: 'loaded' as const }
-                }
-                return ds
-              })
-            )
-
-            // Commented out toast for less intrusive loading
-            // toast.success(
-            //   <span>
-            //     Loaded table <TableName>{dataSource.tableName}</TableName>
-            //   </span>
-            // )
           }
         } catch (error) {
           console.error(
@@ -1054,6 +1261,8 @@ const SQLCockpitWrappedContent = ({
           query={query}
           onHelp={handleShowHelp}
           onSaveResults={handleSaveResults}
+          {...(llmCompletionFunction && { onAIAssist: handleShowAIAssist })}
+          hasLLMCompletion={!!llmCompletionFunction}
           savedQueries={savedQueries || []}
           onSavedQuerySelect={handleSavedQuerySelect}
           dataSources={dataSources}
@@ -1069,7 +1278,7 @@ const SQLCockpitWrappedContent = ({
         {/* Main content area */}
         <div className="flex flex-col flex-1 min-h-0">
           {/* SQL Editor */}
-          <div className="flex-shrink-0 h-[240px]">
+          <div className="flex-[2] min-h-[140px]">
             <SQLEditor
               value={query}
               onChange={setQuery}
@@ -1085,7 +1294,7 @@ const SQLCockpitWrappedContent = ({
           </div>
 
           {/* Results Panel */}
-          <div className="flex-[1] min-h-0 shadow-inner">
+          <div className="flex-[3] min-h-[200px] shadow-inner">
             <ResultsPanel
               result={queryResult}
               error={queryError || formatError}
@@ -1102,6 +1311,64 @@ const SQLCockpitWrappedContent = ({
 
         {/* Help Dialog */}
         <HelpDialog isOpen={showHelpDialog} onClose={handleCloseHelp} />
+
+        {/* AI Assist Dialog */}
+        <Dialog open={showAIAssistDialog} onOpenChange={setShowAIAssistDialog}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>AI-Assisted Query Generation</DialogTitle>
+              <DialogDescription>
+                Describe what you want to query and the AI will generate a SQL
+                query for you based on your available data sources.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-6">
+              <Textarea
+                placeholder="Example: Show me the top 10 customers by total sales amount..."
+                value={aiUserRequest}
+                onChange={e => setAiUserRequest(e.target.value)}
+                className="min-h-[120px]"
+                disabled={isGeneratingQuery}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault()
+                    handleGenerateAIQuery()
+                  }
+                }}
+              />
+              {dataSources.filter(ds => ds.loadingStatus === 'loaded').length >
+                0 && (
+                  <div className="mt-3 text-sm text-muted-foreground">
+                    <span className="font-medium">Available data sources:</span>{' '}
+                    {dataSources
+                      .filter(ds => ds.loadingStatus === 'loaded')
+                      .map(ds => ds.tableName)
+                      .join(', ')}
+                  </div>
+                )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowAIAssistDialog(false)}
+                disabled={isGeneratingQuery}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleGenerateAIQuery}
+                disabled={!aiUserRequest.trim() || isGeneratingQuery}
+                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isGeneratingQuery && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                Generate Query
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Save Results Dialog */}
         <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
@@ -1166,4 +1433,131 @@ const SQLCockpitWrappedContent = ({
       </div>
     </div>
   )
+}
+
+export const formatLLMCompletionPrompt = async (params: {
+  userRequest: string
+  dataSources: Array<{
+    name: string
+    tableName: string
+    description?: string
+    schema?: Array<{
+      name: string
+      type: string
+      nullable: boolean
+    }>
+    sampleData?: Array<Record<string, any>>
+  }>
+  currentQuery: string
+}): Promise<string> => {
+  let comments = `-- Supported SQL Dialect: DuckDB SQL (https://duckdb.org/docs/stable/sql/introduction)\n--\n-- User Request: ${params.userRequest.trim()}\n--\n-- Available Data Sources:\n`
+
+  params.dataSources.forEach((ds: any) => {
+    comments += `--\n`
+    comments += `-- # SQL Table Name: ${ds.tableName}\n`
+    comments += `--- Data Source: ${ds.name}\n`
+    if (ds.description) {
+      comments += `--- Description: ${ds.description}\n`
+    }
+
+    if (ds.schema && ds.schema.length > 0) {
+      comments += `--- Schema (${ds.schema.length} columns):\n`
+
+      // Create formatted schema table using console.table output format
+      const schemaTable = ds.schema.map((col: any) => ({
+        'Column Name': col.name,
+        'Type': col.type,
+        'Nullable': col.nullable !== false ? 'YES' : 'NO'
+      }))
+
+      // Convert the table data to formatted string
+      const columnWidths = {
+        name: Math.max(12, ...schemaTable.map((row: any) => row['Column Name'].length)),
+        type: Math.max(20, ...schemaTable.map((row: any) => row['Type'].length)),
+        nullable: Math.max(8, ...schemaTable.map((row: any) => row['Nullable'].length))
+      }
+
+      // Create table header and borders with proper spacing
+      const nameHeader = 'Column Name'.padEnd(columnWidths.name, ' ')
+      const typeHeader = 'Type'.padEnd(columnWidths.type, ' ')
+      const nullableHeader = 'Nullable'.padEnd(columnWidths.nullable, ' ')
+      const header = `${nameHeader} │ ${typeHeader} │ ${nullableHeader}`
+
+      const nameBorder = '─'.repeat(columnWidths.name)
+      const typeBorder = '─'.repeat(columnWidths.type)
+      const nullableBorder = '─'.repeat(columnWidths.nullable)
+      const border = `${nameBorder}─┼─${typeBorder}─┼─${nullableBorder}`
+      const topBorder = `${nameBorder}─┬─${typeBorder}─┬─${nullableBorder}`
+      const bottomBorder = `${nameBorder}─┴─${typeBorder}─┴─${nullableBorder}`
+
+      comments += `-- ┌─${topBorder}─┐\n`
+      comments += `-- │ ${header} │\n`
+      comments += `-- ├─${border}─┤\n`
+
+      schemaTable.forEach((row: any) => {
+        const nameCol = row['Column Name'].padEnd(columnWidths.name, ' ')
+        const typeCol = row['Type'].padEnd(columnWidths.type, ' ')
+        const nullableCol = row['Nullable'].padEnd(columnWidths.nullable, ' ')
+        comments += `-- │ ${nameCol} │ ${typeCol} │ ${nullableCol} │\n`
+      })
+
+      comments += `-- └─${bottomBorder}─┘\n`
+
+      // Add sample data if available
+      if (ds.sampleData && ds.sampleData.length > 0) {
+        comments += `-- # Sample Data (${ds.sampleData.length} rows, showing first ${Math.min(5, ds.sampleData.length)}):\n`
+
+        const sampleData = ds.sampleData.slice(0, 5)
+        if (sampleData.length > 0) {
+          const columns = Object.keys(sampleData[0])
+
+          // Calculate column widths for sample data
+          const sampleColWidths: Record<string, number> = {}
+          columns.forEach(col => {
+            sampleColWidths[col] = Math.max(
+              col.length,
+              ...sampleData.map((row: any) => String(row[col] || '').length)
+            )
+          })
+
+          // Create sample data table
+          const sampleHeader = columns.map(col =>
+            col.padEnd(sampleColWidths[col], ' ')
+          ).join(' │ ')
+
+          const sampleBorder = columns.map(col =>
+            '─'.repeat(sampleColWidths[col])
+          ).join('─┼─')
+
+          const sampleTopBorder = columns.map(col =>
+            '─'.repeat(sampleColWidths[col])
+          ).join('─┬─')
+
+          const sampleBottomBorder = columns.map(col =>
+            '─'.repeat(sampleColWidths[col])
+          ).join('─┴─')
+
+          comments += `-- ┌─${sampleTopBorder}─┐\n`
+          comments += `-- │ ${sampleHeader} │\n`
+          comments += `-- ├─${sampleBorder}─┤\n`
+
+          sampleData.forEach((row: any) => {
+            const dataRow = columns.map(col => {
+              const value = String(row[col] || '')
+              return value.padEnd(sampleColWidths[col], ' ')
+            }).join(' │ ')
+            comments += `-- │ ${dataRow} │\n`
+          })
+
+          comments += `-- └─${sampleBottomBorder}─┘\n`
+        }
+      } else {
+        comments += `-- # Sample Data: Not available\n`
+      }
+    } else {
+      comments += `-- # Schema: Not available\n`
+    }
+  })
+
+  return comments
 }

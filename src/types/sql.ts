@@ -105,6 +105,22 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
    * Default: false (keeps tables even if removed from prop)
    */
   autoCleanupRemovedDataSources?: boolean
+
+  /**
+   * LLM completion function for AI-assisted query generation
+   * Accepts user request, data source information, and current query
+   * Returns a new SQL query string
+   */
+  llmCompletionFunction?: (params: {
+    userRequest: string
+    dataSources: Array<{
+      name: string
+      tableName: string
+      schema?: ColumnInfo[]
+      sampleData?: Array<Record<string, any>>
+    }>
+    currentQuery: string
+  }) => Promise<string>
 }
 
 /**

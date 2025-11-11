@@ -1491,7 +1491,7 @@ export function ResultsPanel({
   // Analytical chart content
   const analyticalChartContent = (
     <div className="h-full bg-muted/50 flex flex-col mt-0">
-      <div className="overflow-auto relative flex-1 h-full min-h-[200px] p-4">
+      <div className="overflow-auto relative flex-1 h-full p-4">
         {analyticalQuery && result && (
           <AnalyticalChart
             query={analyticalQuery}
@@ -1509,7 +1509,7 @@ export function ResultsPanel({
       {/* Fixed Header */}
       <div className="sticky top-0 z-30 bg-background border-b border-border">
         <div
-          className="overflow-x-auto scrollbar-hidden"
+          className="overflow-x-auto blockether-scrollbar-hidden"
           ref={headerScrollRef}
           onScroll={handleHeaderScrollSync}
         >
@@ -1573,7 +1573,7 @@ export function ResultsPanel({
 
       {/* Results table - flex-1 to take remaining height */}
       <div
-        className={cn('overflow-auto relative flex-1 h-full min-h-[200px]')}
+        className={cn('overflow-auto relative flex-1 h-full border-b-2')}
         ref={bodyScrollRef}
         onScroll={handleBodyScrollSync}
       >
@@ -1657,7 +1657,7 @@ export function ResultsPanel({
       {/* Unified results summary toolbar - always present with consistent height */}
       <div className="h-[68px] min-h-[68px] flex items-center justify-between px-3 py-4 bg-background border-t border-b transition-all duration-200 ease-in-out flex-shrink-0">
         <div className="flex items-center gap-3 text-xs min-w-0 flex-1 transition-all duration-200 ease-in-out">
-          <span className="font-medium text-foreground transition-all duration-200 ease-in-out min-w-[140px] inline-block">
+          <span className="font-medium text-foreground transition-all duration-200 ease-in-out min-w-[92px] inline-block">
             {isLoading
               ? 'Executing Query...'
               : error
@@ -1706,11 +1706,10 @@ export function ResultsPanel({
         </div>
       </div>
       <div
-        className={cn('overflow-y-auto', className)}
+        className={cn('flex-1 overflow-y-auto', className)}
         style={{ maxHeight }}
         data-results-panel="true"
       >
-
         <StateTransition isVisible={isLoading}>
           {loadingContentNoHeader}
         </StateTransition>
@@ -1738,32 +1737,34 @@ export function ResultsPanel({
         </StateTransition>
       </div>
 
-      {/* Selection toolbar - always present */}
-      <ResultsSelectionToolbar
-        result={result}
-        showCopyButton={showCopyButton}
-        selectedColumns={selectedColumns}
-        selectedRows={selectedRows}
-        pagination={pagination}
-        isEditingPage={isEditingPage}
-        pageInput={pageInput}
-        pageInputRef={pageInputRef}
-        onPageInputChange={handlePageInputChange}
-        onPageInputBlur={handlePageInputBlur}
-        onPageInputKeyDown={handlePageInputKeyDown}
-        onPageClick={handlePageClick}
-        onCopySelectedColumnsAsCSV={copySelectedColumnsAsCSV}
-        onCopySelectedColumnsAsJSON={copySelectedColumnsAsJSON}
-        onCopySelectedRowsAsCSV={copySelectedRowsAsCSV}
-        onCopySelectedRowsAsJSON={copySelectedRowsAsJSON}
-        onSaveAsCSV={saveAsCSV}
-        onSaveAsJSON={saveAsJSON}
-        onDownloadSelectedAsCSV={downloadSelectedAsCSV}
-        onDownloadSelectedAsJSON={downloadSelectedAsJSON}
-        onDownloadFullCSV={handleDownloadFullResultAsCSV}
-        onDownloadFullJSON={handleDownloadFullResultAsJSON}
-        onClearSelection={clearSelection}
-      />
+      {/* Selection toolbar - truly sticky at bottom */}
+      {result && result.data && result.data.length > 0 && (
+        <ResultsSelectionToolbar
+          result={result}
+          showCopyButton={showCopyButton}
+          selectedColumns={selectedColumns}
+          selectedRows={selectedRows}
+          pagination={pagination}
+          isEditingPage={isEditingPage}
+          pageInput={pageInput}
+          pageInputRef={pageInputRef}
+          onPageInputChange={handlePageInputChange}
+          onPageInputBlur={handlePageInputBlur}
+          onPageInputKeyDown={handlePageInputKeyDown}
+          onPageClick={handlePageClick}
+          onCopySelectedColumnsAsCSV={copySelectedColumnsAsCSV}
+          onCopySelectedColumnsAsJSON={copySelectedColumnsAsJSON}
+          onCopySelectedRowsAsCSV={copySelectedRowsAsCSV}
+          onCopySelectedRowsAsJSON={copySelectedRowsAsJSON}
+          onSaveAsCSV={saveAsCSV}
+          onSaveAsJSON={saveAsJSON}
+          onDownloadSelectedAsCSV={downloadSelectedAsCSV}
+          onDownloadSelectedAsJSON={downloadSelectedAsJSON}
+          onDownloadFullCSV={handleDownloadFullResultAsCSV}
+          onDownloadFullJSON={handleDownloadFullResultAsJSON}
+          onClearSelection={clearSelection}
+        />
+      )}
 
       {/* Accessibility announcement */}
       <div role="status" aria-live="polite" className="sr-only">
