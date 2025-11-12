@@ -1,37 +1,67 @@
-import { SQLCockpit, ThemeProvider, Composer, ShadowDOMProvider } from '@blockether/foundation-react'
-import { createRoot } from 'react-dom/client';
-import { Database } from 'lucide-react';
-import styles from "./styles.css?inline";
+import {
+  Composer,
+  ShadowDOMProvider,
+  SQLCockpit,
+  ThemeProvider,
+} from '@blockether/foundation-react'
+import { Database } from 'lucide-react'
+import { createRoot } from 'react-dom/client'
+import styles from './styles.css?inline'
 
-(window as any).mountAIInsights = (element: Element, initialDataSources: any[]) => {
-    const shadowRoot = element.attachShadow({ mode: 'open' });
+async function llmCompletionFunction(params: {
+  userRequest: string
+  dataSources: Array<{
+    name: string
+    tableName: string
+    schema?: any[]
+  }>
+  currentQuery: string
+}): Promise<string> {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(
+        `-- This is a mock response for the user request: "${params.userRequest}"\nSELECT * FROM ${params.dataSources[0].tableName} LIMIT 10;`
+      )
+    }, 1000)
+  })
+}
 
-    // Inject styles into shadow DOM
-    const style = document.createElement('style');
-    style.textContent = styles;
-    shadowRoot.appendChild(style);
+;(window as any).mountAIInsights = (
+  element: Element,
+  initialDataSources: any[]
+) => {
+  const shadowRoot = element.attachShadow({ mode: 'open' })
 
-    const mountPoint = document.createElement('div');
-    shadowRoot.appendChild(mountPoint);
+  // Inject styles into shadow DOM
+  const style = document.createElement('style')
+  style.textContent = styles
+  shadowRoot.appendChild(style)
 
-    // Create root on mountPoint inside shadow DOM, not the original element
-    const root = createRoot(mountPoint);
+  const mountPoint = document.createElement('div')
+  shadowRoot.appendChild(mountPoint)
 
-    root.render(
-        <ThemeProvider defaultTheme='light'>
-            <ShadowDOMProvider container={shadowRoot}>
-                <Composer cockpits={
-                    [{
-                        id: 'sql',
-                        name: 'SQL Cockpit',
-                        component: (
-                            <SQLCockpit initialDataSources={initialDataSources} />
-                        ),
-                        icon: <Database className="w-4 h-4" />,
-                    },]
-                }>
-                </Composer>
-            </ShadowDOMProvider>
-        </ThemeProvider>
-    )
+  // Create root on mountPoint inside shadow DOM, not the original element
+  const root = createRoot(mountPoint)
+
+  root.render(
+    <ThemeProvider defaultTheme="light">
+      <ShadowDOMProvider container={shadowRoot}>
+        <Composer
+          cockpits={[
+            {
+              id: 'sql',
+              name: 'SQL Cockpit',
+              component: (
+                <SQLCockpit
+                  initialDataSources={initialDataSources}
+                  llmCompletionFunction={llmCompletionFunction}
+                />
+              ),
+              icon: <Database className="w-4 h-4" />,
+            },
+          ]}
+        ></Composer>
+      </ShadowDOMProvider>
+    </ThemeProvider>
+  )
 }
