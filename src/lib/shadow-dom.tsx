@@ -1,27 +1,26 @@
-import { createContext, useContext, ReactNode } from 'react'
+import { createContext, ReactNode, useContext } from 'react'
 
 interface ShadowDOMContext {
   container: HTMLElement | ShadowRoot | null
-  withinShadowDOM: boolean
 }
 
 const ShadowDOMContext = createContext<ShadowDOMContext>({
   container: null,
-  withinShadowDOM: false,
 })
 
 export function ShadowDOMProvider({
   children,
-  container
+  container,
 }: {
   children: ReactNode
   container: HTMLElement | ShadowRoot | null
 }) {
   return (
-    <ShadowDOMContext.Provider value={{
-      container,
-      withinShadowDOM: !!container
-    }}>
+    <ShadowDOMContext.Provider
+      value={{
+        container,
+      }}
+    >
       {children}
     </ShadowDOMContext.Provider>
   )
