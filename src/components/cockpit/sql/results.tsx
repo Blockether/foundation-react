@@ -6,7 +6,13 @@
  */
 
 import { cn } from '@/lib/utils'
-import { QueryResult, SQLError, AnalyticalQuery } from '@/types/sql'
+import { QueryResult, SQLError, InsightsQuery } from '@/types/sql'
+import {
+  exportQueryResultToCSV,
+  exportQueryResultToJSON,
+  exportQueryResultToCSVFile,
+  exportQueryResultToJSONFile,
+} from '@/lib/duckdb/ops'
 import React from 'react'
 import {
   ChevronLeft,
@@ -42,7 +48,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { AnalyticalChart } from './charts'
 
 const MIN_COLUMN_WIDTH = 160
 const COLUMN_PADDING_BUFFER = 16
@@ -59,7 +64,7 @@ interface ResultsPanelProps {
   ) => void
 
   // Analytical query - if provided, shows chart visualization
-  analyticalQuery?: AnalyticalQuery | null
+  insightsQuery?: InsightsQuery | null
 }
 
 type PaginationControls = ReturnType<typeof usePagination>
@@ -83,12 +88,8 @@ interface ResultsSelectionToolbarProps {
   onCopySelectedRowsAsJSON: () => Promise<void>
   onSaveAsCSV: () => Promise<void>
   onSaveAsJSON: () => Promise<void>
-  onDownloadSelectedAsCSV: (
-    selectionType: 'columns' | 'rows'
-  ) => Promise<void>
-  onDownloadSelectedAsJSON: (
-    selectionType: 'columns' | 'rows'
-  ) => Promise<void>
+  onDownloadSelectedAsCSV: (selectionType: 'columns' | 'rows') => Promise<void>
+  onDownloadSelectedAsJSON: (selectionType: 'columns' | 'rows') => Promise<void>
   onDownloadFullCSV: () => void
   onDownloadFullJSON: () => void
   onClearSelection: () => void
@@ -149,7 +150,7 @@ function ResultsSelectionToolbar({
 }: ResultsSelectionToolbarProps): React.ReactNode {
   return (
     <div
-      className="sticky bottom-0 h-[68px] min-h-[68px] border-t border-b-2 backdrop-blur-sm z-[60] bg-background flex items-center justify-between px-3 py-2 flex-shrink-0"
+      className="sticky bottom-0 h-[68px] min-h-[68px] border-t backdrop-blur-sm z-60 bg-background flex items-center justify-between px-3 py-2 shrink-0"
       data-selection-toolbar="true"
     >
       {result && result.data.length > 0 && (
@@ -160,7 +161,7 @@ function ResultsSelectionToolbar({
             )}
             {selectedColumns.size > 0 && (
               <div className="flex items-center gap-2">
-                <Columns className="h-4 w-4" />
+                <Columns className="h-4 w-4 text-foreground" />
                 <span className="font-medium text-foreground">
                   {selectedColumns.size} column
                   {selectedColumns.size > 1 ? 's' : ''}
@@ -169,7 +170,7 @@ function ResultsSelectionToolbar({
             )}
             {selectedRows.size > 0 && (
               <div className="flex items-center gap-2">
-                <Rows className="h-4 w-4" />
+                <Rows className="h-4 w-4 text-foreground" />
                 <span className="font-medium text-foreground">
                   {selectedRows.size} row{selectedRows.size > 1 ? 's' : ''}
                 </span>
@@ -256,14 +257,14 @@ function ResultsSelectionToolbar({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-8 px-3 text-xs bg-green-500 text-white hover:bg-green-600 shadow-sm cursor-pointer rounded-sm !text-white"
+                    className="h-8 px-3 text-xs bg-green-500 text-white hover:bg-green-600 shadow-sm cursor-pointer rounded-sm"
                     onMouseDown={e => e.stopPropagation()}
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Copy
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="z-[80]">
+                <DropdownMenuContent className="z-80">
                   {selectedColumns.size > 0 && (
                     <>
                       <DropdownMenuItem onClick={onCopySelectedColumnsAsCSV}>
@@ -308,14 +309,14 @@ function ResultsSelectionToolbar({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-8 px-3 text-xs bg-blue-500 text-white hover:bg-blue-600 shadow-sm cursor-pointer rounded-sm !text-white"
+                    className="h-8 px-3 text-xs bg-blue-500 text-white hover:bg-blue-600 shadow-sm cursor-pointer rounded-sm"
                     onMouseDown={e => e.stopPropagation()}
                   >
                     <Save className="h-4 w-4 mr-2" />
                     Save
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="z-[80]">
+                <DropdownMenuContent className="z-80">
                   {selectedColumns.size > 0 && (
                     <>
                       <DropdownMenuItem
@@ -378,7 +379,7 @@ function ResultsSelectionToolbar({
                   size="sm"
                   variant="ghost"
                   onClick={onClearSelection}
-                  className="h-8 px-3 text-xs bg-white hover:bg-gray-200 shadow-sm cursor-pointer rounded-sm dark:hover:bg-gray-700"
+                  className="h-8 px-3 text-xs bg-background hover:bg-muted shadow-sm cursor-pointer rounded-sm border"
                   onMouseDown={e => e.stopPropagation()}
                 >
                   <X className="h-4 w-4 mr-1" />
@@ -403,7 +404,7 @@ export function ResultsPanel({
   maxHeight = '600px',
   className,
   onSelectionChange,
-  analyticalQuery = null,
+  insightsQuery = null,
 }: ResultsPanelProps): React.ReactNode {
   const [isEditingPage, setIsEditingPage] = React.useState(false)
   const [pageInput, setPageInput] = React.useState('')
@@ -420,7 +421,7 @@ export function ResultsPanel({
   )
 
   // Toggle between chart and table view for analytical queries
-  const [showChartView, setShowChartView] = React.useState(!!analyticalQuery)
+  const [showChartView, setShowChartView] = React.useState(!!insightsQuery)
 
   // Enhanced selection state
   const [selectionMode, setSelectionMode] = React.useState<
@@ -490,7 +491,7 @@ export function ResultsPanel({
       return
     }
 
-    if (analyticalQuery && showChartView) {
+    if (insightsQuery && showChartView) {
       return
     }
 
@@ -604,7 +605,7 @@ export function ResultsPanel({
       }
       return nextWidths
     })
-  }, [result, analyticalQuery, showChartView])
+  }, [result, insightsQuery, showChartView])
 
   React.useEffect(() => {
     if (!result || !result.columns.length) {
@@ -624,7 +625,7 @@ export function ResultsPanel({
     pagination.currentPage,
     pagination.itemsPerPage,
     measureColumnWidths,
-    analyticalQuery,
+    insightsQuery,
     showChartView,
   ])
 
@@ -677,19 +678,9 @@ export function ResultsPanel({
   const copySelectedColumnsAsCSV = async (): Promise<void> => {
     if (selectedColumns.size === 0 || !result) return
 
-    const sortedColumns = Array.from(selectedColumns).sort((a, b) => a - b)
-    const headers = sortedColumns.map(index => result.columns[index].name)
-    const rows = (displayData as Array<Record<string, unknown>>).map(
-      (row: Record<string, unknown>) =>
-        sortedColumns.map(index => {
-          const value = row[result.columns[index].name]
-          return typeof value === 'bigint'
-            ? value.toString()
-            : String(value ?? 'NULL')
-        })
-    )
-
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
+    const csvContent = exportQueryResultToCSV(result, {
+      selectedColumns: Array.from(selectedColumns),
+    })
 
     try {
       await navigator.clipboard.writeText(csvContent)
@@ -705,23 +696,9 @@ export function ResultsPanel({
   const copySelectedColumnsAsJSON = async (): Promise<void> => {
     if (selectedColumns.size === 0 || !result) return
 
-    const sortedColumns = Array.from(selectedColumns).sort((a, b) => a - b)
-    const rows = (displayData as Array<Record<string, unknown>>).map(
-      (row: Record<string, unknown>) => {
-        const obj: Record<string, unknown> = {}
-        sortedColumns.forEach(index => {
-          obj[result.columns[index].name] =
-            row[result.columns[index].name] ?? null
-        })
-        return obj
-      }
-    )
-
-    const jsonContent = JSON.stringify(
-      rows,
-      (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
-      2
-    )
+    const jsonContent = exportQueryResultToJSON(result, {
+      selectedColumns: Array.from(selectedColumns),
+    })
 
     try {
       await navigator.clipboard.writeText(jsonContent)
@@ -737,20 +714,9 @@ export function ResultsPanel({
   const copySelectedRowsAsCSV = async (): Promise<void> => {
     if (selectedRows.size === 0 || !result) return
 
-    const sortedRows = Array.from(selectedRows).sort((a, b) => a - b)
-    const headers = result.columns.map(col => col.name)
-    const rows = sortedRows.map(rowIndex =>
-      result.data[rowIndex]
-        ? result.columns.map(col => {
-          const value = result.data[rowIndex][col.name]
-          return typeof value === 'bigint'
-            ? value.toString()
-            : String(value ?? 'NULL')
-        })
-        : []
-    )
-
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
+    const csvContent = exportQueryResultToCSV(result, {
+      selectedRows: Array.from(selectedRows),
+    })
 
     try {
       await navigator.clipboard.writeText(csvContent)
@@ -766,20 +732,9 @@ export function ResultsPanel({
   const copySelectedRowsAsJSON = async (): Promise<void> => {
     if (selectedRows.size === 0 || !result) return
 
-    const sortedRows = Array.from(selectedRows).sort((a, b) => a - b)
-    const rows = sortedRows.map(rowIndex => {
-      const obj: Record<string, unknown> = {}
-      result.columns.forEach(col => {
-        obj[col.name] = result.data[rowIndex]?.[col.name] ?? null
-      })
-      return obj
+    const jsonContent = exportQueryResultToJSON(result, {
+      selectedRows: Array.from(selectedRows),
     })
-
-    const jsonContent = JSON.stringify(
-      rows,
-      (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
-      2
-    )
 
     try {
       await navigator.clipboard.writeText(jsonContent)
@@ -796,17 +751,7 @@ export function ResultsPanel({
   const saveAsCSV = async (): Promise<void> => {
     if (!result) return
 
-    const headers = result.columns.map(col => col.name)
-    const rows = result.data.map((row: Record<string, unknown>) =>
-      result.columns.map(col => {
-        const value = row[col.name]
-        return typeof value === 'bigint'
-          ? value.toString()
-          : String(value ?? 'NULL')
-      })
-    )
-
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
+    const csvContent = exportQueryResultToCSV(result)
 
     try {
       await navigator.clipboard.writeText(csvContent)
@@ -823,37 +768,22 @@ export function ResultsPanel({
     if (!result) return
 
     if (selectionType === 'columns' && selectedColumns.size > 0) {
-      const sortedColumns = Array.from(selectedColumns).sort((a, b) => a - b)
-      const headers = sortedColumns.map(index => result.columns[index].name)
-      const rows = (displayData as Array<Record<string, unknown>>).map(
-        (row: Record<string, unknown>) =>
-          sortedColumns.map(index => {
-            const value = row[result.columns[index].name]
-            return typeof value === 'bigint'
-              ? value.toString()
-              : String(value ?? 'NULL')
-          })
+      const file = exportQueryResultToCSVFile(
+        result,
+        `selected_columns_${Date.now()}.csv`,
+        { selectedColumns: Array.from(selectedColumns) }
       )
-      const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
-      downloadFile(csvContent, `selected_columns_${Date.now()}.csv`, 'text/csv')
+      downloadFile(file)
       toast.success(
         `${selectedColumns.size} column${selectedColumns.size > 1 ? 's' : ''} saved as CSV`
       )
     } else if (selectionType === 'rows' && selectedRows.size > 0) {
-      const sortedRows = Array.from(selectedRows).sort((a, b) => a - b)
-      const headers = result.columns.map(col => col.name)
-      const rows = sortedRows.map(rowIndex =>
-        result.data[rowIndex]
-          ? result.columns.map(col => {
-            const value = result.data[rowIndex][col.name]
-            return typeof value === 'bigint'
-              ? value.toString()
-              : String(value ?? 'NULL')
-          })
-          : []
+      const file = exportQueryResultToCSVFile(
+        result,
+        `selected_rows_${Date.now()}.csv`,
+        { selectedRows: Array.from(selectedRows) }
       )
-      const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
-      downloadFile(csvContent, `selected_rows_${Date.now()}.csv`, 'text/csv')
+      downloadFile(file)
       toast.success(
         `${selectedRows.size} row${selectedRows.size > 1 ? 's' : ''} saved as CSV`
       )
@@ -866,67 +796,33 @@ export function ResultsPanel({
     if (!result) return
 
     if (selectionType === 'columns' && selectedColumns.size > 0) {
-      const sortedColumns = Array.from(selectedColumns).sort((a, b) => a - b)
-      const rows = (displayData as Array<Record<string, unknown>>).map(
-        (row: Record<string, unknown>) => {
-          const obj: Record<string, unknown> = {}
-          sortedColumns.forEach(index => {
-            obj[result.columns[index].name] =
-              row[result.columns[index].name] ?? null
-          })
-          return obj
-        }
-      )
-
-      const jsonContent = JSON.stringify(
-        rows,
-        (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
-        2
-      )
-      downloadFile(
-        jsonContent,
+      const file = exportQueryResultToJSONFile(
+        result,
         `selected_columns_${Date.now()}.json`,
-        'application/json'
+        { selectedColumns: Array.from(selectedColumns) }
       )
+      downloadFile(file)
       toast.success(
         `${selectedColumns.size} column${selectedColumns.size > 1 ? 's' : ''} saved as JSON`
       )
     } else if (selectionType === 'rows' && selectedRows.size > 0) {
-      const sortedRows = Array.from(selectedRows).sort((a, b) => a - b)
-      const rows = sortedRows.map(rowIndex => {
-        const obj: Record<string, unknown> = {}
-        result.columns.forEach(col => {
-          obj[col.name] = result.data[rowIndex]?.[col.name] ?? null
-        })
-        return obj
-      })
-
-      const jsonContent = JSON.stringify(
-        rows,
-        (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
-        2
-      )
-      downloadFile(
-        jsonContent,
+      const file = exportQueryResultToJSONFile(
+        result,
         `selected_rows_${Date.now()}.json`,
-        'application/json'
+        { selectedRows: Array.from(selectedRows) }
       )
+      downloadFile(file)
       toast.success(
         `${selectedRows.size} row${selectedRows.size > 1 ? 's' : ''} saved as JSON`
       )
     }
   }
 
-  const downloadFile = (
-    content: string,
-    filename: string,
-    mimeType: string
-  ): void => {
-    const blob = new Blob([content], { type: mimeType })
-    const url = URL.createObjectURL(blob)
+  const downloadFile = (file: File): void => {
+    const url = URL.createObjectURL(file)
     const link = document.createElement('a')
     link.href = url
-    link.download = filename
+    link.download = file.name
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -936,45 +832,26 @@ export function ResultsPanel({
   const handleDownloadFullResultAsCSV = (): void => {
     if (!result) return
 
-    const headers = result.columns.map(col => col.name)
-    const rows = result.data.map((row: Record<string, unknown>) =>
-      result.columns.map(col => {
-        const value = row[col.name]
-        return typeof value === 'bigint'
-          ? value.toString()
-          : String(value ?? 'NULL')
-      })
-    )
-
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n')
-    downloadFile(csvContent, `results_${Date.now()}.csv`, 'text/csv')
+    const file = exportQueryResultToCSVFile(result, `results_${Date.now()}.csv`)
+    downloadFile(file)
     toast.success(`Full dataset (${result.data.length} rows) saved as CSV`)
   }
 
   const handleDownloadFullResultAsJSON = (): void => {
     if (!result) return
 
-    const jsonContent = JSON.stringify(
-      result.data,
-      (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
-      2
+    const file = exportQueryResultToJSONFile(
+      result,
+      `results_${Date.now()}.json`
     )
-    downloadFile(
-      jsonContent,
-      `results_${Date.now()}.json`,
-      'application/json'
-    )
+    downloadFile(file)
     toast.success(`Full dataset (${result.data.length} rows) saved as JSON`)
   }
 
   const saveAsJSON = async (): Promise<void> => {
     if (!result) return
 
-    const jsonContent = JSON.stringify(
-      result.data,
-      (_key, value) => (typeof value === 'bigint' ? value.toString() : value),
-      2
-    )
+    const jsonContent = exportQueryResultToJSON(result)
 
     try {
       await navigator.clipboard.writeText(jsonContent)
@@ -1273,8 +1150,8 @@ export function ResultsPanel({
 
   // Loading state content without header (for unified toolbar)
   const loadingContentNoHeader = (
-    <div className="overflow-y-auto bg-background text-foreground flex-1 flex-grow min-h-[400px]">
-      <div className="flex items-center justify-center min-h-[400px]">
+    <div className="overflow-y-auto bg-background text-foreground flex-1 grow min-h-[30vh]">
+      <div className="flex items-center justify-center min-h-[30vh]">
         <div className="text-center">
           <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto">
             <svg
@@ -1386,11 +1263,11 @@ export function ResultsPanel({
 
   // Error state content without header (for unified toolbar)
   const errorContentNoHeader = (
-    <div className="overflow-y-auto flex-1 flex-grow min-h-[400px]">
-      <div className="flex items-center justify-center min-h-[400px] p-6">
+    <div className="overflow-y-auto flex-1 grow min-h-[30vh]">
+      <div className="flex items-center justify-center min-h-[30vh] p-6">
         <div className="max-w-2xl mx-auto text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center border border-destructive/20">
+            <div className="shrink-0 w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center border border-destructive/20">
               <svg
                 className="w-6 h-6 text-destructive"
                 fill="none"
@@ -1427,8 +1304,8 @@ export function ResultsPanel({
 
   // No results state content without header (for unified toolbar)
   const noResultsContentNoHeader = (
-    <div className="overflow-y-auto bg-background flex-1 flex-grow min-h-[400px]">
-      <div className="flex items-center justify-center min-h-[400px]">
+    <div className="overflow-y-auto bg-background flex-1 grow min-h-[30vh]">
+      <div className="flex items-center justify-center min-h-[30vh]">
         <div className="text-center">
           <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto border">
             <svg
@@ -1459,12 +1336,12 @@ export function ResultsPanel({
 
   // Empty result set content without header (for unified toolbar)
   const emptyResultContentNoHeader = (
-    <div className="overflow-y-auto bg-background flex-1 flex-grow min-h-[400px]">
-      <div className="flex items-center justify-center min-h-[400px]">
+    <div className="overflow-y-auto bg-background flex-1 grow min-h-[30vh]">
+      <div className="flex items-center justify-center min-h-[30vh]">
         <div className="text-center">
-          <div className="flex items-center justify-center w-12 h-12 bg-muted/30 rounded-full mb-3 mx-auto border">
+          <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto border">
             <svg
-              className="w-6 h-6 text-muted-foreground"
+              className="w-8 h-8 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -1473,32 +1350,18 @@ export function ResultsPanel({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
           </div>
-          <h3 className="text-sm font-medium text-foreground mb-1">
-            Query returned no results
+          <h3 className="text-base font-medium text-foreground mb-2">
+            No results to display
           </h3>
-          <p className="text-xs text-muted-foreground">
-            The query executed successfully but returned 0 rows
+          <p className="text-sm text-muted-foreground max-w-md px-8">
+            The query executed successfully but returned 0 rows. Try modifying
+            your query or check if the data exists.
           </p>
         </div>
-      </div>
-    </div>
-  )
-
-  // Analytical chart content
-  const analyticalChartContent = (
-    <div className="h-full bg-muted/50 flex flex-col mt-0">
-      <div className="overflow-auto relative flex-1 h-full p-4">
-        {analyticalQuery && result && (
-          <AnalyticalChart
-            query={analyticalQuery}
-            result={result}
-            className="w-full h-full"
-          />
-        )}
       </div>
     </div>
   )
@@ -1547,7 +1410,7 @@ export function ResultsPanel({
                           ? 'bg-primary/10'
                           : 'hover:bg-muted/50',
                         selectedColumns.has(index) &&
-                        'bg-primary/20 ring-2 ring-primary/50',
+                          'bg-primary/20 ring-2 ring-primary/50',
                         selectionMode === 'column' && 'hover:bg-primary/30'
                       )}
                       style={{ minWidth: `${MIN_COLUMN_WIDTH}px` }}
@@ -1653,9 +1516,9 @@ export function ResultsPanel({
 
   // Main render with animated state transitions
   return (
-    <div className='bg-background relative flex flex-col h-full max-h-[60vh]'>
+    <div className="bg-background relative flex flex-col h-full max-h-[65vh]">
       {/* Unified results summary toolbar - always present with consistent height */}
-      <div className="h-[68px] max-h-[68px] flex items-center justify-between px-3 py-2 bg-background border-t border-b transition-all duration-200 ease-in-out flex-shrink-0">
+      <div className="h-[68px] max-h-[68px] flex items-center justify-between px-3 py-2 bg-background border-t border-b transition-all duration-200 ease-in-out shrink-0">
         <div className="flex items-center gap-3 text-xs min-w-0 flex-1 transition-all duration-200 ease-in-out">
           <span className="font-medium text-foreground transition-all duration-200 ease-in-out min-w-[92px] inline-block">
             {isLoading
@@ -1670,14 +1533,14 @@ export function ResultsPanel({
                       ? `${result.rowCount.toLocaleString()} rows affected`
                       : `${result.data.length.toLocaleString()} rows returned`}
           </span>
-          <span className="text-muted-foreground transition-all duration-200 ease-in-out min-w-[80px] inline-block">
+          <span className="text-muted-foreground transition-all duration-200 ease-in-out min-w-20 inline-block">
             {!error && result?.columns && <>{result.columns.length} columns</>}
           </span>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0 transition-all duration-200 ease-in-out">
+        <div className="flex items-center gap-2 shrink-0 transition-all duration-200 ease-in-out">
           {/* Analytical query toggle button */}
-          {analyticalQuery && result && result.data.length > 0 && (
-            <div className="flex items-center bg-muted/50 border-1 rounded-sm">
+          {insightsQuery && result && result.data.length > 0 && (
+            <div className="flex items-center bg-muted/50 border rounded-sm">
               <Button
                 size="sm"
                 variant={showChartView ? 'default' : 'ghost'}
@@ -1686,7 +1549,7 @@ export function ResultsPanel({
                 title="Show chart view"
               >
                 <BarChart3 className="h-3 w-3 mr-1" />
-                Chart
+                Insights
               </Button>
               <Button
                 size="sm"
@@ -1723,7 +1586,9 @@ export function ResultsPanel({
         </StateTransition>
 
         <StateTransition
-          isVisible={!!result && result.data.length === 0 && !isLoading && !error}
+          isVisible={
+            !!result && result.data.length === 0 && !isLoading && !error
+          }
         >
           {emptyResultContentNoHeader}
         </StateTransition>
@@ -1731,8 +1596,8 @@ export function ResultsPanel({
         <StateTransition
           isVisible={!!result && result.data.length > 0 && !isLoading && !error}
         >
-          {analyticalQuery && showChartView
-            ? analyticalChartContent
+          {insightsQuery && result && showChartView
+            ? insightsQuery.renderer(result)
             : resultsTableContent}
         </StateTransition>
       </div>

@@ -40,7 +40,16 @@ export default defineConfig({
         '@duckdb/duckdb-wasm',
         '@monaco-editor/react',
         'recharts',
-        'apache-arrow'
+        'apache-arrow',
+        'tokenlens',
+        'use-stick-to-bottom',
+        'nanoid',
+        'embla-carousel-react',
+        'cmdk',
+        'motion',
+        'sonner',
+        'streamdown'
+
       ],
       output: {
         globals: {

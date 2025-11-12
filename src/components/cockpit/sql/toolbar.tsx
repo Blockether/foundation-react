@@ -8,17 +8,19 @@
 import React, { useEffect, useState } from 'react'
 
 // Lucide React icons
-import { Play, Square, Sparkles, HelpCircle, BarChart3, Wand2 } from 'lucide-react'
+import {
+  Play,
+  Square,
+  Sparkles,
+  HelpCircle,
+  BarChart3,
+  Wand2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SavedQueries } from './saved'
 import { DataSources, DataSourcesProps } from './datasources'
-import {
-  SavedQuery,
-  DataSource,
-  QueryResult,
-  AnalyticalQuery,
-} from '@/types/sql'
+import { SavedQuery, DataSource, QueryResult, InsightsQuery } from '@/types/sql'
 import { DuckDBQueryState } from '@/lib/duckdb/types'
 
 interface SQLToolbarProps {
@@ -46,17 +48,17 @@ interface SQLToolbarProps {
   isLoadingBatch: boolean
   onImportFile?: (file: File) => Promise<void>
   onSelectDataSource?: (dataSource: DataSource) => void
-  onExecuteAnalyticalQuery?: (
-    query: AnalyticalQuery,
+  onExecuteInsightsQuery?: (
+    query: InsightsQuery,
     dataSource?: DataSource
   ) => Promise<void>
 
   // Analytical query state
-  isAnalyticalQuery?: boolean
-  currentAnalyticalQuery?: AnalyticalQuery | null
+  isInsightsQuery?: boolean
+  currentInsightsQuery?: InsightsQuery | null
 
   // Analytical queries for data analysis
-  analyticalQueries?: AnalyticalQuery[]
+  analyticalQueries?: InsightsQuery[]
 
   // UI options
   className?: string
@@ -83,9 +85,9 @@ export function SQLToolbar({
   isLoadingBatch = false,
   onImportFile,
   onSelectDataSource,
-  onExecuteAnalyticalQuery,
-  isAnalyticalQuery = false,
-  currentAnalyticalQuery = null,
+  onExecuteInsightsQuery,
+  isInsightsQuery = false,
+  currentInsightsQuery = null,
   analyticalQueries,
   className,
 }: SQLToolbarProps): React.ReactNode {
@@ -243,12 +245,12 @@ export function SQLToolbar({
                 isRunning
                   ? 'bg-red-500 text-white hover:bg-red-700'
                   : isInterrupting
-                    ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+                    ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                     : cn(
-                      'bg-green-500 text-white hover:bg-green-700',
-                      // Subtle animation effect
-                      isPlayAnimating && 'bg-green-600'
-                    )
+                        'bg-green-500 text-white hover:bg-green-700',
+                        // Subtle animation effect
+                        isPlayAnimating && 'bg-green-600'
+                      )
               )}
               aria-label={
                 isRunning ? 'Cancel query' : 'Run SQL Query (Ctrl+Enter)'
@@ -313,7 +315,7 @@ export function SQLToolbar({
                 size="sm"
                 variant="ghost"
                 onClick={onAIAssist}
-                className="hover:cursor-pointer text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
+                className="hover:cursor-pointer text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
                 aria-label="AI-assisted query generation"
               >
                 <Wand2 className="h-4 w-4" />
@@ -323,12 +325,12 @@ export function SQLToolbar({
           )}
         </div>
 
-        {/* Center - Analytical Query Indicator */}
-        {isAnalyticalQuery && currentAnalyticalQuery && (
+        {/* Center - Insights Query Indicator */}
+        {isInsightsQuery && currentInsightsQuery && (
           <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
             <BarChart3 className="h-3 w-3 text-primary" />
             <span className="text-xs font-medium text-primary">
-              {currentAnalyticalQuery.name}
+              {currentInsightsQuery.name}
             </span>
           </div>
         )}
@@ -343,7 +345,7 @@ export function SQLToolbar({
                 isLoadingBatch,
                 onImportFile,
                 onSelectDataSource,
-                onExecuteAnalyticalQuery,
+                onExecuteInsightsQuery,
                 analyticalQueries,
               } as DataSourcesProps)}
             />

@@ -115,7 +115,7 @@ export function SavedQueries({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-[50] flex flex-col"
+          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-50 flex flex-col"
         >
           {/* Search input */}
           {queries.length > 3 && (
@@ -150,10 +150,20 @@ export function SavedQueries({
           {/* Query list */}
           <div className="max-h-60 overflow-y-auto">
             {filteredQueries.length === 0 ? (
-              <div className="px-3 py-6 text-center text-sm">
-                {searchTerm
-                  ? 'No queries found matching your search.'
-                  : 'No saved queries available.'}
+              <div className="flex items-center justify-center min-h-[40vh] p-8">
+                <div className="text-center">
+                  <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto border">
+                    <History className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-base font-medium text-foreground mb-2">
+                    No saved queries
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {searchTerm
+                      ? 'No queries found matching your search. Try adjusting your search terms.'
+                      : 'Your saved queries will appear here.'}
+                  </p>
+                </div>
               </div>
             ) : (
               <div role="menu">

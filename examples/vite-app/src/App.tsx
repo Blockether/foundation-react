@@ -5,7 +5,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light">
       <div className="min-h-screen bg-background">
-        <header className="border-b border-border bg-card">
+        <header className="border-b bg-card">
           <div className="container mx-auto px-4 py-4">
             <h1 className="text-2xl font-bold text-foreground">
               Foundation React Cockpit Demo
@@ -22,7 +22,7 @@ function App() {
               <h2 className="text-xl font-semibold text-foreground mb-4">
                 SQL Cockpit Component
               </h2>
-              <div className="bg-card rounded-lg border border-border p-6">
+              <div className="bg-card rounded-lg border p-6">
                 <SQLCockpit />
               </div>
             </section>
@@ -31,7 +31,7 @@ function App() {
               <h2 className="text-xl font-semibold text-foreground mb-4">
                 About This Demo
               </h2>
-              <div className="bg-card rounded-lg border border-border p-6 space-y-4">
+              <div className="bg-card rounded-lg border p-6 space-y-4">
                 <p className="text-muted-foreground">
                   This is a basic React application built with Vite that demonstrates the usage of the SQL Cockpit component
                   from the @blockether/foundation-react library.

@@ -40,6 +40,7 @@ The library serves as the UI layer for agno and blockether_foundation Python lib
 
 ### Component Development
 - All components MUST be developed as TypeScript React components
+- NEVER RESTART STORYBOOK. It's automatically takes the changes and does fast refresh!
 - Components must include comprehensive JSDoc documentation
 - Each component must have corresponding stories in Storybook
 - Unit tests are mandatory for all component logic

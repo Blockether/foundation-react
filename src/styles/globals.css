@@ -54,7 +54,7 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(100% 0.00011 271.152 / 0.1);
+  --border: oklch(0.985 0 0);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
@@ -93,6 +93,17 @@
   --color-ring: var(--ring);
 }
 
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+    outline-color: var(--color-ring);
+  }
+}
+
 .blockether-scrollbar-hidden {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -101,4 +112,20 @@
 .blockether-scrollbar-hidden::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+.blockether-foundation-markdown {
+  li {
+    &:before {
+      content: '•';
+      position: absolute;
+      left: 20px;
+      color: var(--color-foreground);
+    }
+
+    margin-top: 0.48rem;
+    margin-bottom: 0.25rem;
+    padding-left: 40px;
+    position: relative;
+  }
 }

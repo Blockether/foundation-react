@@ -27,6 +27,7 @@ Resources:
         Variables:
           BLOCKETHER_LLM_API_BASE_URL: !Sub '${BlocketherLLMBaseUrl}'
           BLOCKETHER_LLM_API_KEY: !Sub '${BlocketherLLMAPIKey}'
+          AWS_LWA_READINESS_CHECK_PATH: "/health"
           AWS_LWA_INVOKE_MODE: RESPONSE_STREAM
           AWS_LWA_ASYNC_INIT: "true"
           AWS_LWA_ENABLE_COMPRESSION: "true"

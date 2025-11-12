@@ -244,24 +244,24 @@ function DefaultHelpContent(): React.ReactNode {
                 <td className="p-3 text-right">
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center justify-end gap-1">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Ctrl
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Enter
                       </kbd>
                     </div>
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Cmd
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Enter
                       </kbd>
                     </div>
@@ -273,36 +273,36 @@ function DefaultHelpContent(): React.ReactNode {
                 <td className="p-3 text-right">
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center justify-end gap-1">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Ctrl
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Shift
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         F
                       </kbd>
                     </div>
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Cmd
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Shift
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         F
                       </kbd>
                     </div>
@@ -314,24 +314,24 @@ function DefaultHelpContent(): React.ReactNode {
                 <td className="p-3 text-right">
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center justify-end gap-1">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Ctrl
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         S
                       </kbd>
                     </div>
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Cmd
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         S
                       </kbd>
                     </div>
@@ -343,24 +343,24 @@ function DefaultHelpContent(): React.ReactNode {
                 <td className="p-3 text-right">
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center justify-end gap-1">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Ctrl
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         /
                       </kbd>
                     </div>
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Cmd
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         /
                       </kbd>
                     </div>
@@ -372,29 +372,29 @@ function DefaultHelpContent(): React.ReactNode {
                 <td className="p-3 text-right">
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center justify-end gap-1">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         F1
                       </kbd>
                     </div>
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Ctrl
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         H
                       </kbd>
                     </div>
                     <div className="flex items-center justify-end gap-1 text-muted-foreground">
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         Cmd
                       </kbd>
                       <span className="text-muted-foreground text-xs leading-none">
                         +
                       </span>
-                      <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                      <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                         H
                       </kbd>
                     </div>
@@ -405,7 +405,7 @@ function DefaultHelpContent(): React.ReactNode {
                 <td className="p-3 text-foreground">Close dialogs</td>
                 <td className="p-3 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <kbd className="px-2 py-1 bg-muted border border-border text-foreground text-xs font-mono leading-none rounded">
+                    <kbd className="px-2 py-1 bg-muted border text-foreground text-xs font-mono leading-none rounded">
                       Esc
                     </kbd>
                   </div>

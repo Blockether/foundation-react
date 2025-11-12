@@ -1,4 +1,3 @@
-from typing import Any, cast
 from agno.agent import Agent
 
 from agno.db.in_memory import InMemoryDb
@@ -8,6 +7,7 @@ from agno.os import AgentOS
 from agno.os.interfaces.agui import AGUI
 
 import os
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 MODEL_BASE_URL = os.getenv("BLOCKETHER_LLM_API_BASE_URL", None)
@@ -17,9 +17,13 @@ if not MODEL_BASE_URL:
 
 storage = InMemoryDb()
 
-blockether_model = OpenAIChat(id="gpt-4o", base_url=MODEL_BASE_URL)
+blockether_model = OpenAIChat(
+    id="gpt-4o", base_url=MODEL_BASE_URL, api_key=MODEL_API_KEY
+)
 
-conversational_agent = Agent(model=blockether_model, db=storage)
+conversational_agent = Agent(
+    model=blockether_model, db=storage, name="conversational-agent"
+)
 
 agent_os = AgentOS(
     description="Example app with MCP enabled",
@@ -29,6 +33,14 @@ agent_os = AgentOS(
 )
 
 app = agent_os.get_app()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))

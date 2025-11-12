@@ -2,12 +2,15 @@ import './styles/globals.css'
 
 export { ThemeProvider, useTheme } from './components/theme'
 
+// AI Assistant components
+export { AssistantCockpit } from './components/cockpit/ai/assistant'
+
 // SQL Cockpit components
-export { SQLCockpit } from './components/sql/cockpit'
-export { SQLEditor } from './components/sql/editor'
-export { SQLToolbar } from './components/sql/toolbar'
-export { ResultsPanel } from './components/sql/results'
-export { DataSources } from './components/sql/datasources'
+export { SQLCockpit } from './components/cockpit/sql/cockpit'
+export { SQLEditor } from './components/cockpit/sql/editor'
+export { SQLToolbar } from './components/cockpit/sql/toolbar'
+export { ResultsPanel } from './components/cockpit/sql/results'
+export { DataSources } from './components/cockpit/sql/datasources'
 
 // SQL Cockpit hooks
 export { useSQLFormatter } from './hooks/use-sql-formatter'
@@ -17,7 +20,20 @@ export { useCopyColumn, usePagination } from './lib/hooks'
 // DuckDB integration
 export * from './lib/duckdb'
 
-// Types
+// AI Assistant types
+export type {
+  AssistantCockpitProps,
+  ActionMenuItem,
+  ActionCallbacks,
+  Context,
+  State,
+  Tool,
+  ToastStatus,
+  Message as AIMessage,
+  ChatSession,
+} from './components/cockpit/ai/assistant'
+
+// SQL Types
 export type {
   SQLCockpitProps,
   QueryResult,
@@ -30,5 +46,5 @@ export type {
   ToolbarAction,
   DataSource,
   DataSourceLoadingStatus,
-  AnalyticalQuery,
+  InsightsQuery,
 } from './types/sql'

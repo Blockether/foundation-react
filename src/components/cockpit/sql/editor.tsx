@@ -8,7 +8,7 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react'
 import { Editor, OnMount } from '@monaco-editor/react'
 import { cn } from '@/lib/utils'
-import { useTheme } from '../theme'
+import { useTheme } from '../../theme'
 import { DataSource } from '@/types/sql'
 import {
   registerDuckDBCompletionProvider,
@@ -27,7 +27,6 @@ interface SQLEditorProps {
   // Editor configuration
   readOnly?: boolean
   showLineNumbers?: boolean
-  placeholder?: string
   fontSize?: number
   tabSize?: number
   wordWrap?: boolean
@@ -57,7 +56,6 @@ export function SQLEditor({
   onMount,
   onFocus,
   onBlur,
-  placeholder,
   tabSize = 2,
   wordWrap = true,
   minimap = false,
@@ -154,10 +152,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ; (container.style as any).userSelect = 'auto'
-            ; (container.style as any).webkitUserSelect = 'auto'
-            ; (container.style as any).MozUserSelect = 'auto'
-            ; (container.style as any).msUserSelect = 'auto'
+          ;(container.style as any).userSelect = 'auto'
+          ;(container.style as any).webkitUserSelect = 'auto'
+          ;(container.style as any).MozUserSelect = 'auto'
+          ;(container.style as any).msUserSelect = 'auto'
         }
       })
 
@@ -169,10 +167,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ; (container.style as any).userSelect = 'none'
-            ; (container.style as any).webkitUserSelect = 'none'
-            ; (container.style as any).MozUserSelect = 'none'
-            ; (container.style as any).msUserSelect = 'none'
+          ;(container.style as any).userSelect = 'none'
+          ;(container.style as any).webkitUserSelect = 'none'
+          ;(container.style as any).MozUserSelect = 'none'
+          ;(container.style as any).msUserSelect = 'none'
         }
       })
 
@@ -390,18 +388,6 @@ export function SQLEditor({
         }
       }
 
-      // Show placeholder when editor mounts
-      const placeholderElement = document.querySelector(
-        '.monaco-placeholder'
-      ) as HTMLElement | null
-      if (placeholderElement) {
-        if (value) {
-          placeholderElement!.style.display = 'none'
-        } else {
-          placeholderElement!.style.display = 'block'
-        }
-      }
-
       // Call custom onMount callback
       if (onMount) {
         onMount(editor)
@@ -466,21 +452,9 @@ export function SQLEditor({
 
   // Handle Monaco editor events
   const handleEditorOnChange = (newValue: string | undefined, _ev: any) => {
-    // Handle placeholder visibility based on editor content
-    const placeholder = document.querySelector(
-      '.monaco-placeholder'
-    ) as HTMLElement | null
-    if (placeholder) {
-      if (!newValue) {
-        placeholder!.style.display = 'block'
-      } else {
-        placeholder!.style.display = 'none'
-      }
-
-      // Call parent onChange
-      if (newValue !== undefined) {
-        onChange(newValue)
-      }
+    // Call parent onChange
+    if (newValue !== undefined) {
+      onChange(newValue)
     }
   }
 
@@ -489,7 +463,7 @@ export function SQLEditor({
       className={cn('relative', className)}
       style={
         {
-          height: '35vh',
+          height: '30vh',
           userSelect: 'none',
           WebkitUserSelect: 'none',
           MozUserSelect: 'none',
@@ -514,11 +488,6 @@ export function SQLEditor({
           </div>
         }
       />
-
-      {/* Placeholder */}
-      <div className="monaco-placeholder absolute top-2 left-13 text-muted-foreground/40 text-sm pointer-events-none whitespace-pre-wrap">
-        {placeholder}
-      </div>
     </div>
   )
 }

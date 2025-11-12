@@ -24,7 +24,7 @@ import {
   Loader2,
   HelpCircle,
 } from 'lucide-react'
-import { DataSource, AnalyticalQuery } from '@/types/sql'
+import { DataSource, InsightsQuery } from '@/types/sql'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -40,16 +40,16 @@ export interface DataSourcesProps {
   isLoadingBatch: boolean
   onImportFile?: ((file: File) => Promise<void>) | undefined
   onSelectDataSource?: ((dataSource: DataSource) => void) | undefined
-  onExecuteAnalyticalQuery?:
-  | ((query: AnalyticalQuery, dataSource?: DataSource) => Promise<void>)
-  | undefined
+  onExecuteInsightsQuery?:
+    | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
+    | undefined
   onRemoveDataSource?: ((dataSource: DataSource) => void) | undefined
   className?: string
   /**
    * Analytical queries for data analysis
    * Only user-provided queries will be available - no built-in defaults
    */
-  analyticalQueries?: AnalyticalQuery[]
+  analyticalQueries?: InsightsQuery[]
 }
 
 /**
@@ -60,7 +60,7 @@ export function DataSources({
   isLoadingBatch,
   onImportFile,
   onSelectDataSource,
-  onExecuteAnalyticalQuery,
+  onExecuteInsightsQuery,
   onRemoveDataSource,
   analyticalQueries,
   className,
@@ -144,16 +144,16 @@ export function DataSources({
     }
   }
 
-  const handleAnalyticalQuery = async (
-    query: AnalyticalQuery,
+  const handleInsightsQuery = async (
+    query: InsightsQuery,
     dataSource: DataSource,
     event: React.MouseEvent
   ): Promise<void> => {
     event.stopPropagation()
     event.preventDefault()
 
-    if (onExecuteAnalyticalQuery) {
-      await onExecuteAnalyticalQuery(query, dataSource)
+    if (onExecuteInsightsQuery) {
+      await onExecuteInsightsQuery(query, dataSource)
       setIsOpen(false)
     }
   }
@@ -170,7 +170,7 @@ export function DataSources({
     }
   }
 
-  const getAvailableQueries = (dataSource: DataSource): AnalyticalQuery[] => {
+  const getAvailableQueries = (dataSource: DataSource): InsightsQuery[] => {
     // Filter analytical queries based on targeting criteria
     if (!analyticalQueries) return []
 
@@ -289,17 +289,27 @@ export function DataSources({
           {/* Data sources list */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-[64px]">
             {filteredDataSources.length === 0 ? (
-              <div className="py-3 px-16 text-center text-sm text-muted-foreground">
-                {searchTerm
-                  ? 'No data sources found matching your search.'
-                  : 'No data sources available. Import a file to get started.'}
+              <div className="flex items-center justify-center min-h-[40vh] p-8">
+                <div className="text-center">
+                  <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto border">
+                    <Database className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-base font-medium text-foreground mb-2">
+                    No data sources available
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {searchTerm
+                      ? 'No data sources found matching your search. Try adjusting your search terms.'
+                      : 'Import a file to get started with SQL queries.'}
+                  </p>
+                </div>
               </div>
             ) : (
               <div role="menu">
                 {filteredDataSources.map((dataSource, index) => {
                   const availableQueries = getAvailableQueries(dataSource)
                   const hasAnalysis =
-                    onExecuteAnalyticalQuery && availableQueries.length > 0
+                    onExecuteInsightsQuery && availableQueries.length > 0
                   const isDisabled =
                     dataSource.loadingStatus === 'failed' ||
                     dataSource.loadingStatus === 'loading' ||
@@ -367,13 +377,13 @@ export function DataSources({
                                   </span>
                                 )}
                                 {dataSource.loadingStatus === 'loaded' && (
-                                    <span
-                                      title="Loaded successfully"
-                                      className="flex-shrink-0"
-                                    >
-                                      <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-500" />
-                                    </span>
-                                  )}
+                                  <span
+                                    title="Loaded successfully"
+                                    className="flex-shrink-0"
+                                  >
+                                    <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-500" />
+                                  </span>
+                                )}
                                 {isFailed && (
                                   <span
                                     className="cursor-help relative z-50 flex-shrink-0"
@@ -465,14 +475,14 @@ export function DataSources({
                                     <DropdownMenuItem
                                       key={query.id}
                                       onClick={e =>
-                                        handleAnalyticalQuery(
+                                        handleInsightsQuery(
                                           query,
                                           dataSource,
                                           e
                                         )
                                       }
                                       onMouseDown={e =>
-                                        handleAnalyticalQuery(
+                                        handleInsightsQuery(
                                           query,
                                           dataSource,
                                           e

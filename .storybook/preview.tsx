@@ -60,11 +60,13 @@ const preview: Preview = {
       const { theme } = context.globals
 
       return (
-        <ThemeProvider defaultTheme={theme}>
-          <StoryThemeProviderWrapper theme={theme}>
-            <Story />
-          </StoryThemeProviderWrapper>
-        </ThemeProvider>
+        <div className='p-2'>
+          <ThemeProvider defaultTheme={theme}>
+            <StoryThemeProviderWrapper theme={theme}>
+              <Story />
+            </StoryThemeProviderWrapper>
+          </ThemeProvider>
+        </div>
       )
     },
   ],

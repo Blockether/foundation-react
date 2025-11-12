@@ -84,13 +84,13 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
    * List of analytical queries for data analysis
    * If provided, these will be available for execution on data sources
    */
-  analyticalQueries?: AnalyticalQuery[]
+  analyticalQueries?: InsightsQuery[]
 
   /**
    * Callback function for executing analytical queries with data source context
    */
-  onExecuteAnalyticalQuery?: (
-    query: AnalyticalQuery,
+  onExecuteInsightsQuery?: (
+    query: InsightsQuery,
     dataSource?: DataSource
   ) => Promise<void>
 
@@ -438,7 +438,7 @@ export interface ToolbarAction {
  * Analytical query category type
  * Supports both predefined categories and custom extensions
  */
-export type AnalyticalQueryCategory =
+export type InsightsQueryCategory =
   | 'summary' // Basic statistical summaries
   | 'pattern' // Data profiling and patterns
   | 'validation' // Data quality validation
@@ -456,7 +456,7 @@ export type AnalyticalQueryCategory =
 /**
  * Analytical query interface
  */
-export interface AnalyticalQuery {
+export interface InsightsQuery {
   /**
    * Unique identifier for the analytical query
    */
@@ -485,7 +485,7 @@ export interface AnalyticalQuery {
   /**
    * Query category - extensible to support custom analysis types
    */
-  category: AnalyticalQueryCategory
+  category: InsightsQueryCategory
 
   /**
    * Target specific table names - if specified, query only applies to these tables
@@ -496,16 +496,22 @@ export interface AnalyticalQuery {
    * Target data source types - if specified, query only applies to these source types
    */
   targetCategories?: ('table' | 'view' | 'file' | 'url')[]
+
+  /**
+   * Custom renderer function for visualizing query results
+   * Takes a QueryResult and returns a React node for custom visualization
+   */
+  renderer: (result: QueryResult) => React.ReactNode
 }
 
 /**
  * Analytical query execution result
  */
-export interface AnalyticalQueryResult {
+export interface InsightsQueryResult {
   /**
    * The analytical query that was executed
    */
-  query: AnalyticalQuery
+  query: InsightsQuery
 
   /**
    * Query execution result
@@ -623,12 +629,7 @@ export interface DataSource {
   /**
    * Available analytical queries for this data source
    */
-  analyticalQueries?: AnalyticalQuery[]
-
-  /**
-   * Whether analytical queries are enabled for this data source
-   */
-  enableAnalysis?: boolean
+  analyticalQueries?: InsightsQuery[]
 
   /**
    * URL to fetch data from (for url type or initial loading)
@@ -644,6 +645,13 @@ export interface DataSource {
    * Raw data for initial loading (alternative to url/fileData)
    */
   data?: Record<string, unknown>[]
+
+  /**
+   * Optional explicit column ordering for data sources with raw data
+   * When provided, columns will be created in this exact order
+   * If not provided, column order is determined by Object.keys() which may vary
+   */
+  columnOrder?: string[]
 
   /**
    * Loading status of the data source
