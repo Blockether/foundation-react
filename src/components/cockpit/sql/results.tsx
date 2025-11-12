@@ -1076,16 +1076,18 @@ export function ResultsPanel({
         return
       }
 
+      // Use composedPath() for Shadow DOM compatibility
+      const path = e.composedPath()
+
       const resultsContainer = document.querySelector('[data-results-panel]')
       const selectionToolbar = document.querySelector(
         '[data-selection-toolbar]'
       )
-      const target = e.target as Element
 
       const isClickWithinResults =
-        resultsContainer && resultsContainer.contains(target)
+        resultsContainer && path.includes(resultsContainer)
       const isClickWithinToolbar =
-        selectionToolbar && selectionToolbar.contains(target)
+        selectionToolbar && path.includes(selectionToolbar)
 
       // Only clear if clicking completely outside the results area and toolbar
       if (!isClickWithinResults && !isClickWithinToolbar) {
@@ -1410,7 +1412,7 @@ export function ResultsPanel({
                           ? 'bg-primary/10'
                           : 'hover:bg-muted/50',
                         selectedColumns.has(index) &&
-                          'bg-primary/20 ring-2 ring-primary/50',
+                        'bg-primary/20 ring-2 ring-primary/50',
                         selectionMode === 'column' && 'hover:bg-primary/30'
                       )}
                       style={{ minWidth: `${MIN_COLUMN_WIDTH}px` }}

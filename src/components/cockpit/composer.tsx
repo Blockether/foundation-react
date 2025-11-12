@@ -1,8 +1,8 @@
 /**
- * CockpitComposer Component
+ * Composer Component
  *
  * A tabbed component that can accept named/prebuilt sections like SQL Cockpit.
- * Shows tabs only when there are multiple Cockpits for a clean interface.
+ * Shows tabs only when there are multiple cockpits for a clean interface.
  */
 
 import { useState, ReactNode } from 'react'
@@ -10,12 +10,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 /**
- * Props for CockpitComposer component
+ * Props for Composer component
  */
 export interface CockpitSection {
   /** Unique identifier for the Cockpit section */
   id: string
-  /** Display name for the tab (shown only when multiple Cockpits) */
+  /** Display name for the tab (shown only when multiple cockpits) */
   name: string
   /** React node content for this Cockpit section */
   component: ReactNode
@@ -27,11 +27,11 @@ export interface CockpitSection {
 
 export interface CockpitComposerProps {
   /** Array of Cockpit sections to display */
-  Cockpits: CockpitSection[]
+  cockpits: CockpitSection[]
   /** Initially active Cockpit ID (defaults to first Cockpit) */
   defaultActiveId?: string
   /** Callback when active Cockpit changes */
-  onActiveChange?: (CockpitId: string) => void
+  onActiveChange?: (cockpitId: string) => void
   /** Custom class names */
   className?: string
   /** Whether to show tabs header even with single Cockpit */
@@ -41,29 +41,29 @@ export interface CockpitComposerProps {
 }
 
 /**
- * CockpitComposer component that manages multiple Cockpit sections with tabs
+ * Composer component that manages multiple Cockpit sections with tabs
  */
-export function CockpitComposer({
-  Cockpits,
+export function Composer({
+  cockpits,
   defaultActiveId,
   onActiveChange,
   className,
   forceShowTabs = false,
   orientation = 'horizontal',
 }: CockpitComposerProps) {
-  // Validate Cockpits array
-  if (!Cockpits || Cockpits.length === 0) {
-    console.warn('CockpitComposer: No Cockpits provided')
+  // Validate cockpits array
+  if (!cockpits || cockpits.length === 0) {
+    console.warn('Composer: No cockpits provided')
     return null
   }
 
   // Set initial active Cockpit
-  const initialActiveId = defaultActiveId || Cockpits[0]!.id
+  const initialActiveId = defaultActiveId || cockpits[0]!.id
   const [activeCockpitId, setActiveCockpitId] = useState(initialActiveId)
 
   // Find the currently active Cockpit
   const activeCockpit =
-    Cockpits.find(c => c.id === activeCockpitId) || Cockpits[0]!
+    cockpits.find(c => c.id === activeCockpitId) || cockpits[0]!
 
   // Handle Cockpit change
   const handleCockpitChange = (CockpitId: string) => {
@@ -74,18 +74,18 @@ export function CockpitComposer({
   }
 
   // Determine if we should show tabs
-  const shouldShowTabs = forceShowTabs || Cockpits.length > 1
+  const shouldShowTabs = forceShowTabs || cockpits.length > 1
 
   // Single Cockpit mode - just render the component directly
   if (!shouldShowTabs) {
     return (
       <div className={cn('h-full w-full', className)}>
-        {Cockpits[0]!.component}
+        {cockpits[0]!.component}
       </div>
     )
   }
 
-  // Multiple Cockpits mode - render with tabs
+  // Multiple cockpits mode - render with tabs
   return (
     <div
       className={cn(
@@ -113,11 +113,11 @@ export function CockpitComposer({
               : 'w-full flex flex-row border-b'
           )}
         >
-          {Cockpits.map(Cockpit => (
+          {cockpits.map(cockpit => (
             <TabsTrigger
-              key={Cockpit.id}
-              value={Cockpit.id}
-              disabled={Cockpit.disabled}
+              key={cockpit.id}
+              value={cockpit.id}
+              disabled={cockpit.disabled}
               className={cn(
                 'flex items-center px-4 py-2 text-sm font-medium rounded-none transition-all',
                 orientation === 'vertical'
@@ -128,10 +128,10 @@ export function CockpitComposer({
                 'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:text-muted-foreground'
               )}
             >
-              {Cockpit.icon && (
-                <span className="w-4 h-4 flex-shrink-0">{Cockpit.icon}</span>
+              {cockpit.icon && (
+                <span className="w-4 h-4 shrink-0">{cockpit.icon}</span>
               )}
-              <span className="truncate">{Cockpit.name}</span>
+              <span className="truncate">{cockpit.name}</span>
             </TabsTrigger>
           ))}
         </TabsList>

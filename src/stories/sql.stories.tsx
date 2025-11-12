@@ -334,7 +334,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          'Default SQL Cockpit component without CockpitComposer wrapper. Shows basic SQL query functionality with saved queries.',
+          'Default SQL Cockpit component without Composer wrapper. Shows basic SQL query functionality with saved queries.',
       },
     },
   },
@@ -734,21 +734,20 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
-                            width: `${
-                              Math.max(
-                                ...result.data.map((r: any) =>
-                                  Number(r.employee_count || 0)
-                                )
-                              ) > 0
+                            width: `${Math.max(
+                              ...result.data.map((r: any) =>
+                                Number(r.employee_count || 0)
+                              )
+                            ) > 0
                                 ? (Number(row.employee_count || 0) /
-                                    Math.max(
-                                      ...result.data.map((r: any) =>
-                                        Number(r.employee_count || 0)
-                                      )
-                                    )) *
-                                  100
+                                  Math.max(
+                                    ...result.data.map((r: any) =>
+                                      Number(r.employee_count || 0)
+                                    )
+                                  )) *
+                                100
                                 : 0
-                            }%`,
+                              }%`,
                           }}
                         />
                       </div>
@@ -832,11 +831,10 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                   {result.data.map((row: any, index) => (
                     <div
                       key={index}
-                      className={`p-4 rounded-lg ${
-                        row.status === 'active'
+                      className={`p-4 rounded-lg ${row.status === 'active'
                           ? 'bg-green-50 dark:bg-green-950/20'
                           : 'bg-red-50 dark:bg-red-950/20'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium capitalize">
@@ -917,12 +915,12 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                             )
                           ) > 0
                             ? (Number(row.avg_projects || 0) /
-                                Math.max(
-                                  ...result.data.map((r: any) =>
-                                    Number(r.avg_projects || 0)
-                                  )
-                                )) *
-                              100
+                              Math.max(
+                                ...result.data.map((r: any) =>
+                                  Number(r.avg_projects || 0)
+                                )
+                              )) *
+                            100
                             : 0
                         }
                         className="mt-3 h-2"

@@ -48,10 +48,14 @@ export function SavedQueries({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
+      // Use composedPath() for Shadow DOM compatibility
+      const path = event.composedPath()
+
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !triggerButtonRef.current?.contains(event.target as Node)
+        !path.includes(dropdownRef.current) &&
+        triggerButtonRef.current &&
+        !path.includes(triggerButtonRef.current)
       ) {
         setIsOpen(false)
         setSearchTerm('')

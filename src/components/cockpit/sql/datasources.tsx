@@ -41,8 +41,8 @@ export interface DataSourcesProps {
   onImportFile?: ((file: File) => Promise<void>) | undefined
   onSelectDataSource?: ((dataSource: DataSource) => void) | undefined
   onExecuteInsightsQuery?:
-    | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
-    | undefined
+  | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
+  | undefined
   onRemoveDataSource?: ((dataSource: DataSource) => void) | undefined
   className?: string
   /**
@@ -89,10 +89,14 @@ export function DataSources({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
+      // Use composedPath() for Shadow DOM compatibility
+      const path = event.composedPath()
+
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !triggerButtonRef.current?.contains(event.target as Node)
+        !path.includes(dropdownRef.current) &&
+        triggerButtonRef.current &&
+        !path.includes(triggerButtonRef.current)
       ) {
         setIsOpen(false)
         setSearchTerm('')
