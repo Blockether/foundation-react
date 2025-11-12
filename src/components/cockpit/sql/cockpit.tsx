@@ -6,43 +6,43 @@
  * interface in the browser.
  */
 
-import React, { useState, useCallback, useRef, useReducer } from 'react'
-import { SQLEditor } from './editor'
-import { SQLToolbar } from './toolbar'
-import { ResultsPanel } from './results'
-import { HelpDialog } from './help'
-import { useSQLFormatter } from '@/hooks/use-sql-formatter'
-import { cn } from '@/lib/utils'
-import {
-  SavedQuery,
-  QueryResult,
-  SQLError,
-  DataSource,
-  InsightsQuery,
-  SQLCockpitProps,
-} from '@/types/sql'
-import {
-  useDuckDB,
-  useDuckDBConnection,
-  transformDuckDBResult,
-  transformErrorToSQLError,
-  exportQueryResultToCSVFile,
-  exportQueryResultToJSONFile,
-} from '@/lib/duckdb'
-import { DuckDBQueryState } from '@/lib/duckdb/types'
-import { Toaster } from '@/components/ui/sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
-import { toast } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 import { Textarea } from '@/components/ui/textarea'
+import { useSQLFormatter } from '@/hooks/use-sql-formatter'
+import {
+  exportQueryResultToCSVFile,
+  exportQueryResultToJSONFile,
+  transformDuckDBResult,
+  transformErrorToSQLError,
+  useDuckDB,
+  useDuckDBConnection,
+} from '@/lib/duckdb'
+import { DuckDBQueryState } from '@/lib/duckdb/types'
+import { cn } from '@/lib/utils'
+import {
+  DataSource,
+  InsightsQuery,
+  QueryResult,
+  SavedQuery,
+  SQLCockpitProps,
+  SQLError,
+} from '@/types/sql'
 import { Loader2 } from 'lucide-react'
+import React, { useCallback, useReducer, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import { SQLEditor } from './editor'
+import { HelpDialog } from './help'
+import { ResultsPanel } from './results'
+import { SQLToolbar } from './toolbar'
 
 /**
  * Helper component to display table/data source names with styling
