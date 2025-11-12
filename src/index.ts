@@ -20,6 +20,12 @@ export { useCopyColumn, usePagination } from './lib/hooks'
 // DuckDB integration
 export * from './lib/duckdb'
 
+// Composer component
+export { Composer } from './components/cockpit/composer'
+
+// Shadow DOM utilities
+export { ShadowDOMProvider, useShadowDOM } from './lib/shadow-dom'
+
 // AI Assistant types
 export type {
   AssistantCockpitProps,

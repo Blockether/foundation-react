@@ -1,7 +1,7 @@
 // ===== COPILOT COMPOSER STORIES =====
 // These stories are focused on Cockpit Composer tabbed interface functionality
 
-import { CockpitComposer } from '@/components/cockpit/composer'
+import { Composer } from '@/components/cockpit/composer'
 import { SQLCockpit } from '@/components/cockpit/sql/cockpit'
 import {
   MessageSquare,
@@ -295,15 +295,15 @@ const mockDataSources = [
   },
 ]
 
-const meta: Meta<typeof CockpitComposer> = {
+const meta: Meta<typeof Composer> = {
   title: 'Cockpit Composer',
-  component: CockpitComposer,
+  component: Composer,
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component:
-          'A tabbed component that displays tabs only when there are multiple Cockpits. Each Cockpit can be a named/prebuilt section like SQL Cockpit.',
+          'A tabbed component that displays tabs only when there are multiple cockpits. Each Cockpit can be a named/prebuilt section like SQL Cockpit.',
       },
     },
     backgrounds: {
@@ -333,7 +333,7 @@ const meta: Meta<typeof CockpitComposer> = {
     },
   },
   argTypes: {
-    Cockpits: {
+    cockpits: {
       description: 'Array of Cockpit sections to display',
       control: 'object',
     },
@@ -355,12 +355,12 @@ const meta: Meta<typeof CockpitComposer> = {
 }
 
 export default meta
-type Story = StoryObj<typeof CockpitComposer>
+type Story = StoryObj<typeof Composer>
 
 // Default - Single Cockpit - No tabs shown
 export const Default: Story = {
   render: () => {
-    const Cockpits = [
+    const cockpits = [
       {
         id: 'sql',
         name: 'SQL Cockpit',
@@ -378,7 +378,7 @@ export const Default: Story = {
 
     return (
       <div className="h-screen">
-        <CockpitComposer Cockpits={Cockpits} />
+        <Composer cockpits={cockpits} />
       </div>
     )
   },
@@ -392,10 +392,10 @@ export const Default: Story = {
   },
 }
 
-// Multiple Cockpits - Tabs shown
-export const MultipleCockpits: Story = {
+// Multiple cockpits - Tabs shown
+export const Multiplecockpits: Story = {
   render: () => {
-    const Cockpits = [
+    const cockpits = [
       {
         id: 'sql',
         name: 'SQL Cockpit',
@@ -474,7 +474,7 @@ export const MultipleCockpits: Story = {
 
     return (
       <div className="h-screen">
-        <CockpitComposer Cockpits={Cockpits} defaultActiveId="sql" />
+        <Composer cockpits={cockpits} defaultActiveId="sql" />
       </div>
     )
   },
@@ -482,7 +482,7 @@ export const MultipleCockpits: Story = {
     docs: {
       description: {
         story:
-          'With multiple Cockpits, tabs are displayed for navigation. Each Cockpit represents a different section or functionality.',
+          'With multiple cockpits, tabs are displayed for navigation. Each Cockpit represents a different section or functionality.',
       },
     },
   },
@@ -491,7 +491,7 @@ export const MultipleCockpits: Story = {
 // With Disabled Cockpit
 export const WithDisabledCockpit: Story = {
   render: () => {
-    const Cockpits = [
+    const cockpits = [
       {
         id: 'sql',
         name: 'SQL Cockpit',
@@ -547,7 +547,7 @@ export const WithDisabledCockpit: Story = {
 
     return (
       <div className="h-screen">
-        <CockpitComposer Cockpits={Cockpits} />
+        <Composer cockpits={cockpits} />
       </div>
     )
   },
@@ -555,7 +555,7 @@ export const WithDisabledCockpit: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates how disabled Cockpits are handled. Disabled tabs are shown but not clickable.',
+          'Demonstrates how disabled cockpits are handled. Disabled tabs are shown but not clickable.',
       },
     },
   },
@@ -564,7 +564,7 @@ export const WithDisabledCockpit: Story = {
 // Vertical Tabs
 export const VerticalTabs: Story = {
   render: () => {
-    const Cockpits = [
+    const cockpits = [
       {
         id: 'sql',
         name: 'SQL',
@@ -600,7 +600,7 @@ export const VerticalTabs: Story = {
 
     return (
       <div className="h-screen">
-        <CockpitComposer Cockpits={Cockpits} orientation="vertical" />
+        <Composer cockpits={cockpits} orientation="vertical" />
       </div>
     )
   },
@@ -617,7 +617,7 @@ export const VerticalTabs: Story = {
 // Force Show Tabs with Single Cockpit
 export const ForceShowTabs: Story = {
   render: () => {
-    const Cockpits = [
+    const cockpits = [
       {
         id: 'sql',
         name: 'SQL Cockpit',
@@ -635,7 +635,7 @@ export const ForceShowTabs: Story = {
 
     return (
       <div className="h-screen">
-        <CockpitComposer Cockpits={Cockpits} forceShowTabs={true} />
+        <Composer cockpits={cockpits} forceShowTabs={true} />
       </div>
     )
   },

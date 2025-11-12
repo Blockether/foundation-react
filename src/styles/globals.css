@@ -1,8 +1,9 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:is(.dark, .dark *));
 
+:host,
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -20,7 +21,7 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
+  --border: oklch(0.205 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -36,9 +37,62 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --tw-divide-y-reverse: 0;
+  --tw-border-style: solid;
+  --tw-font-weight: initial;
+  --tw-tracking: initial;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-translate-z: 0;
+  --tw-rotate-x: rotateX(0);
+  --tw-rotate-y: rotateY(0);
+  --tw-rotate-z: rotateZ(0);
+  --tw-skew-x: skewX(0);
+  --tw-skew-y: skewY(0);
+  --tw-space-x-reverse: 0;
+  --tw-gradient-position: initial;
+  --tw-gradient-from: #0000;
+  --tw-gradient-via: #0000;
+  --tw-gradient-to: #0000;
+  --tw-gradient-stops: initial;
+  --tw-gradient-via-stops: initial;
+  --tw-gradient-from-position: 0%;
+  --tw-gradient-via-position: 50%;
+  --tw-gradient-to-position: 100%;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-color: initial;
+  --tw-inset-shadow: 0 0 #0000;
+  --tw-inset-shadow-color: initial;
+  --tw-ring-color: initial;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-color: initial;
+  --tw-inset-ring-shadow: 0 0 #0000;
+  --tw-ring-inset: initial;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-blur: initial;
+  --tw-brightness: initial;
+  --tw-contrast: initial;
+  --tw-grayscale: initial;
+  --tw-hue-rotate: initial;
+  --tw-invert: initial;
+  --tw-opacity: initial;
+  --tw-saturate: initial;
+  --tw-sepia: initial;
+  --tw-drop-shadow: initial;
+  --tw-duration: initial;
+  --tw-ease: initial;
 }
 
+:host,
+:root {
+  color-scheme: light;
+}
+
+:host(.dark),
 .dark {
+  color-scheme: dark;
   --background: oklch(0.235 0 89.876);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -72,7 +126,7 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -91,9 +145,11 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-border:
 }
 
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -104,28 +160,26 @@
   }
 }
 
-.blockether-scrollbar-hidden {
+@utility blockether-scrollbar-hidden {
   scrollbar-width: none;
   -ms-overflow-style: none;
-}
 
-.blockether-scrollbar-hidden::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
-.blockether-foundation-markdown {
-  li {
-    &:before {
-      content: '•';
-      position: absolute;
-      left: 20px;
-      color: var(--color-foreground);
-    }
-
-    margin-top: 0.48rem;
-    margin-bottom: 0.25rem;
-    padding-left: 40px;
-    position: relative;
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
+}
+
+.blockether-foundation-markdown li {
+  margin-top: 0.48rem;
+  margin-bottom: 0.25rem;
+  padding-left: 40px;
+  position: relative;
+}
+
+.blockether-foundation-markdown li::before {
+  content: '•';
+  position: absolute;
+  left: 20px;
+  color: var(--color-foreground);
 }

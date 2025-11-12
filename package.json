@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build --mode lib && node scripts/build-scoped-css.js",
+    "build": "vite build --mode lib",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "clean": "rm -Rf node_modules dist pnpm-lock.yaml package-lock.json",
@@ -59,7 +59,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@xyflow/react": "^12.9.2",
     "ai": "^5.0.92",
     "apache-arrow": "^21.1.0",
