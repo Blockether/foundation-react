@@ -1,0 +1,39 @@
+{
+  "name": "@blockether/foundation-react-standalone",
+  "version": "1.0.0",
+  "description": "Standalone demo application for @blockether/foundation-react",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "deploy": "pnpm build",
+    "clean": "rm -rf dist node_modules",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@blockether/foundation-react": "file:../../",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/react": "^18.3.26",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "vite",
+    "standalone",
+    "demo",
+    "sql",
+    "ai-chat"
+  ],
+  "author": "blockether.com",
+  "license": "MIT"
+}

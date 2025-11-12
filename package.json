@@ -1,7 +1,7 @@
 {
   "name": "@blockether/foundation-react",
   "version": "2.0.0",
-  "description": "React-based chat UI, complement to `blockether_foundation` library with integrated SQL analysis capabilities",
+  "description": "Browser-based SQL cockpit and AI chat UI components for React. Powered by DuckDB-WASM and shadcn/ui. Designed for agno and blockether_foundation Python libraries.",
   "type": "module",
   "module": "dist/foundation-react.js",
   "types": "dist/index.d.ts",
@@ -25,15 +25,17 @@
   },
   "keywords": [
     "react",
-    "typescript",
-    "reporting"
+    "sql",
+    "duckdb",
+    "ai-chat",
+    "shadcn-ui"
   ],
   "author": "blockether.com <contact@blockether.com>",
   "license": "MIT",
   "packageManager": "pnpm@10.20.0",
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
