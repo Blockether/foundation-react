@@ -4,6 +4,23 @@ import dts from 'vite-plugin-dts'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
+const externals = [
+  'react',
+  'react-dom',
+  '@duckdb/duckdb-wasm',
+  '@monaco-editor/react',
+  'recharts',
+  'tokenlens',
+  'use-stick-to-bottom',
+  'nanoid',
+  'embla-carousel-react',
+  'cmdk',
+  'motion',
+  'sonner',
+  'streamdown',
+  'monaco-editor'
+]
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -11,7 +28,7 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       include: ['src/**/*'],
-      exclude: ['src/**/*.test.*', 'src/**/*.spec.*'],
+      exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'examples/**'],
       rollupTypes: true,
     }),
   ],
@@ -34,23 +51,7 @@ export default defineConfig({
     },
     cssCodeSplit: false, // Bundle all CSS into one file
     rollupOptions: {
-      external: [
-        'react',
-        'react-dom',
-        '@duckdb/duckdb-wasm',
-        '@monaco-editor/react',
-        'recharts',
-        'apache-arrow',
-        'tokenlens',
-        'use-stick-to-bottom',
-        'nanoid',
-        'embla-carousel-react',
-        'cmdk',
-        'motion',
-        'sonner',
-        'streamdown'
-
-      ],
+      external: (id) => externals.includes(id) || id.includes('.worker') || id.startsWith('@duckdb/duckdb-wasm/dist/duckdb-') && id.endsWith('?url'),
       output: {
         globals: {
           react: 'React',
@@ -67,21 +68,11 @@ export default defineConfig({
     // Optimize for browser distribution
     target: 'es2020',
     minify: 'esbuild',
-    sourcemap: true,
+    sourcemap: false,
     emptyOutDir: true,
   },
   // Configure Monaco Editor worker handling
   optimizeDeps: {
-    exclude: ['@monaco-editor/react'],
-  },
-  server: {
-    fs: {
-      // Ensure Monaco Editor workers can be served
-      allow: ['..'],
-    },
-  },
-  define: {
-    // Enable Monaco Editor features for browser
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-  },
+    exclude: ['@monaco-editor/react', 'monaco-editor', '@duckdb/duckdb-wasm'],
+  }
 })

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { InsightsQuery, QueryResult } from '@/types/sql'
-import { Meta, StoryObj } from '@storybook/react'
+import { Meta, StoryObj } from '@storybook/react-vite'
 import {
   Activity,
   BarChartIcon,
@@ -56,7 +56,7 @@ const mockSavedQueries = [
   },
 ]
 
-// Mock analytical queries
+// Mock insights queries
 const mockAnalyticalQueries: InsightsQuery[] = [
   {
     id: 'summary-stats',
@@ -347,7 +347,7 @@ export const SQLAnalyticsAndCharts: Story = {
       <div className="h-screen">
         <SQLCockpit
           initialQuery={
-            '-- Real DuckDB data loaded from CSV files!\n-- Click the database icon to explore analytical queries.\n-- Charts will be automatically generated from query results.\n\nSELECT * FROM users LIMIT 100;'
+            '-- Real DuckDB data loaded from CSV files!\n-- Click the database icon to explore insights queries.\n-- Charts will be automatically generated from query results.\n\nSELECT * FROM users LIMIT 100;'
           }
           savedQueries={mockSavedQueries}
           analyticalQueries={mockAnalyticalQueries}
@@ -356,7 +356,7 @@ export const SQLAnalyticsAndCharts: Story = {
             <div className="p-4">
               <h3 className="font-semibold mb-2">Analytics & Charts Demo</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                This comprehensive demo showcases analytical queries with
+                This comprehensive demo showcases insights queries with
                 intelligent targeting and automatic chart generation.
               </p>
 
@@ -369,12 +369,12 @@ export const SQLAnalyticsAndCharts: Story = {
                       see data sources
                     </li>
                     <li>
-                      - Each data source shows relevant analytical queries based
+                      - Each data source shows relevant insights queries based
                       on targeting rules
                     </li>
                     <li>
                       - Click the <strong>Chart icon</strong> next to data
-                      sources to run analytical queries
+                      sources to run insights queries
                     </li>
                     <li>
                       - Charts are automatically generated from query results
@@ -406,8 +406,8 @@ export const SQLAnalyticsAndCharts: Story = {
 
                 <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded">
                   <p className="text-xs font-medium text-blue-800 dark:text-blue-200">
-                    💡 Tip: Try different analytical queries to see various
-                    chart types!
+                    💡 Tip: Try different insights queries to see various chart
+                    types!
                   </p>
                 </div>
               </div>
@@ -421,7 +421,7 @@ export const SQLAnalyticsAndCharts: Story = {
     docs: {
       description: {
         story:
-          'Comprehensive demonstration of both analytical queries and chart functionality. Shows intelligent query targeting based on data source types and table names, with automatic chart generation from query results. Click the database icon to explore data sources and the chart icon to run analytical queries with visualizations.',
+          'Comprehensive demonstration of both insights queries and chart functionality. Shows intelligent query targeting based on data source types and table names, with automatic chart generation from query results. Click the database icon to explore data sources and the chart icon to run insights queries with visualizations.',
       },
     },
   },
@@ -644,7 +644,7 @@ export const SQLWithJavascriptArrayDatasource: Story = {
       },
     }
 
-    // Enhanced analytical queries for employee data
+    // Enhanced insights queries for employee data
     const employeeAnalyticalQueries = [
       {
         id: 'employee-summary',
@@ -734,20 +734,21 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
-                            width: `${Math.max(
-                              ...result.data.map((r: any) =>
-                                Number(r.employee_count || 0)
-                              )
-                            ) > 0
+                            width: `${
+                              Math.max(
+                                ...result.data.map((r: any) =>
+                                  Number(r.employee_count || 0)
+                                )
+                              ) > 0
                                 ? (Number(row.employee_count || 0) /
-                                  Math.max(
-                                    ...result.data.map((r: any) =>
-                                      Number(r.employee_count || 0)
-                                    )
-                                  )) *
-                                100
+                                    Math.max(
+                                      ...result.data.map((r: any) =>
+                                        Number(r.employee_count || 0)
+                                      )
+                                    )) *
+                                  100
                                 : 0
-                              }%`,
+                            }%`,
                           }}
                         />
                       </div>
@@ -831,10 +832,11 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                   {result.data.map((row: any, index) => (
                     <div
                       key={index}
-                      className={`p-4 rounded-lg ${row.status === 'active'
+                      className={`p-4 rounded-lg ${
+                        row.status === 'active'
                           ? 'bg-green-50 dark:bg-green-950/20'
                           : 'bg-red-50 dark:bg-red-950/20'
-                        }`}
+                      }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium capitalize">
@@ -915,12 +917,12 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                             )
                           ) > 0
                             ? (Number(row.avg_projects || 0) /
-                              Math.max(
-                                ...result.data.map((r: any) =>
-                                  Number(r.avg_projects || 0)
-                                )
-                              )) *
-                            100
+                                Math.max(
+                                  ...result.data.map((r: any) =>
+                                    Number(r.avg_projects || 0)
+                                  )
+                                )) *
+                              100
                             : 0
                         }
                         className="mt-3 h-2"

@@ -145,11 +145,11 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-border:
+  --color-border:    
+;
 }
 
 @layer base {
-
   *,
   ::after,
   ::before,
@@ -160,7 +160,7 @@
   }
 }
 
-@utility blockether-scrollbar-hidden {
+.blockether-scrollbar-hidden {
   scrollbar-width: none;
   -ms-overflow-style: none;
 
@@ -182,4 +182,28 @@
   position: absolute;
   left: 20px;
   color: var(--color-foreground);
+}
+
+/* Shadow DOM portal styling - ensure correct positioning */
+.shadow-dom-portal-styles {
+  /* Make this a positioned container for the dropdown */
+  position: relative;
+}
+
+/* Override Radix popper positioning to work within Shadow DOM portal */
+.shadow-dom-portal-styles [data-radix-dropdown-menu-content] {
+  position: absolute !important;
+  /* Let Radix position correctly within the portal container */
+}
+
+/* Fix Radix dropdown portal positioning */
+.shadow-dom-portal-styles
+  [data-radix-dropdown-menu-content][data-state='open'] {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Ensure proper z-index layering in Shadow DOM */
+.shadow-dom-portal-styles [data-radix-dropdown-menu-content] {
+  z-index: 9999 !important;
 }

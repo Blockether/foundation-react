@@ -3,36 +3,14 @@
  *
  * Provides intelligent SQL autocompletion for DuckDB with support for:
  * - DuckDB-specific functions and keywords
- * - Table and column completion from data sources
- * - Context-aware suggestions
+ * - Real table and column completion from data source schemas
+ * - Context-aware suggestions based on FROM/JOIN clauses
+ * - Qualified column completion (table.column notation)
  * - Function signatures and parameter hints
+ * - Smart table detection with schema information
  */
 
 import { DataSource } from '@/types/sql'
-
-// Monaco types will be available at runtime
-interface Monaco {
-  languages: {
-    CompletionItemKind: {
-      Keyword: number
-      Function: number
-      Class: number
-      Field: number
-      Method: number
-      Variable: number
-    }
-    registerCompletionItemProvider: (
-      language: string,
-      provider: any
-    ) => { dispose(): void }
-  }
-}
-
-declare global {
-  interface Window {
-    monaco?: Monaco
-  }
-}
 
 export interface CompletionContext {
   /** Current data sources available for completion */
@@ -51,6 +29,13 @@ export interface CompletionContext {
 const DUCKDB_KEYWORDS = [
   // Standard SQL keywords
   'SELECT',
+  'DESCRIBE',
+  'INSERT INTO',
+  'VALUES',
+  'UPDATE',
+  'SET',
+  'DELETE',
+  'CREATE TABLE',
   'FROM',
   'WHERE',
   'GROUP BY',
@@ -348,9 +333,31 @@ const FUNCTION_SIGNATURES: Record<string, string> = {
 export function createDuckDBCompletionProvider(
   context: CompletionContext
 ): any {
+  console.log('🚀 Creating DuckDB completion provider with context:', {
+    dataSourcesCount: context.dataSources.length,
+    dataSources: context.dataSources.map(ds => ({
+      name: ds.name,
+      type: ds.type,
+    })),
+    hasConnection: !!context.connection,
+  })
+
+  // Store Monaco instance globally for completion provider access
+  const monaco = (window as any).monaco
+  if (!monaco) {
+    console.warn('⚠️ Monaco not available on window during provider creation')
+  }
+
   return {
     provideCompletionItems: async (model: any, position: any) => {
+      console.log('🔍 Providing completions at position:', {
+        line: position.lineNumber,
+        column: position.column,
+      })
+
       const word = model.getWordUntilPosition(position)
+      console.log('📝 Current word:', word)
+
       const range = {
         startLineNumber: position.lineNumber,
         endLineNumber: position.lineNumber,
@@ -358,8 +365,15 @@ export function createDuckDBCompletionProvider(
         endColumn: word.endColumn,
       }
 
-      const monaco = (window as any).monaco
-      if (!monaco) return { suggestions: [] }
+      // Get Monaco instance from multiple sources
+      let currentMonaco = (window as any).monaco || monaco
+
+      if (!currentMonaco) {
+        console.error('❌ No Monaco instance available for completion')
+        return { suggestions: [] }
+      }
+
+      console.log('✅ Monaco instance found:', !!currentMonaco)
 
       const suggestions: any[] = []
 
@@ -371,41 +385,101 @@ export function createDuckDBCompletionProvider(
         endColumn: position.column,
       })
 
-      // Add keyword suggestions
-      suggestions.push(
-        ...getKeywordSuggestions(range, textBeforeCursor, monaco)
+      console.log('📊 Text before cursor:', textBeforeCursor)
+      console.log('📊 Line content:', model.getLineContent(position.lineNumber))
+
+      // Check specific patterns for table completion
+      const currentLine = model.getLineContent(position.lineNumber)
+      const textBeforeCursorInLine = currentLine.substring(
+        0,
+        position.column - 1
       )
+      const fromMatch = textBeforeCursorInLine.match(/\bFROM\s+$/i)
+      const describeMatch = textBeforeCursorInLine.match(/\bDESCRIBE\s+$/i)
+      const fromPartialMatch = textBeforeCursorInLine.match(/\bFROM\s+(\w*)$/i)
+      const describePartialMatch =
+        textBeforeCursorInLine.match(/\bDESCRIBE\s+(\w*)$/i)
+
+      console.log('🎯 Table completion patterns:')
+      console.log('  - FROM exact match:', !!fromMatch)
+      console.log('  - DESCRIBE exact match:', !!describeMatch)
+      console.log('  - FROM partial match:', fromPartialMatch)
+      console.log('  - DESCRIBE partial match:', describePartialMatch)
+
+      // Add keyword suggestions
+      const keywordSuggestions = getKeywordSuggestions(
+        range,
+        textBeforeCursor,
+        currentMonaco
+      )
+      console.log('🔤 Keyword suggestions:', keywordSuggestions.length)
+      suggestions.push(...keywordSuggestions)
 
       // Add function suggestions
-      suggestions.push(
-        ...getFunctionSuggestions(range, textBeforeCursor, monaco)
+      const functionSuggestions = getFunctionSuggestions(
+        range,
+        textBeforeCursor,
+        currentMonaco
       )
+      console.log('⚡ Function suggestions:', functionSuggestions.length)
+      suggestions.push(...functionSuggestions)
 
       // Add table suggestions from data sources
-      suggestions.push(
-        ...getTableSuggestions(
-          range,
-          textBeforeCursor,
-          context.dataSources,
-          monaco
-        )
+      const tableSuggestions = getTableSuggestions(
+        range,
+        textBeforeCursor,
+        context.dataSources,
+        currentMonaco
       )
+      console.log('📋 Table suggestions:', tableSuggestions.length)
+      suggestions.push(...tableSuggestions)
 
       // Add column suggestions if we're in a context where columns make sense
-      const tableSuggestions = getTableContext(
+      const tableContext = getTableContext(
         textBeforeCursor,
         context.dataSources
       )
-      if (tableSuggestions.length > 0) {
-        suggestions.push(
-          ...getColumnSuggestions(
-            range,
-            textBeforeCursor,
-            tableSuggestions,
-            monaco
-          )
+      console.log('🏗️ Table context:', tableContext)
+
+      // Check if we're dealing with qualified column names (table.column)
+      const qualifiedColumnMatch = textBeforeCursor.match(
+        /([a-zA-Z_][a-zA-Z0-9_]*)\.$/
+      )
+      if (qualifiedColumnMatch) {
+        console.log('🔎 Qualified column match:', qualifiedColumnMatch[1])
+        const tableName = qualifiedColumnMatch[1]
+        const dataSource = context.dataSources.find(
+          ds => ds.tableName === tableName
         )
+        if (dataSource?.schema) {
+          const qualifiedColumnSuggestions = getQualifiedColumnSuggestions(
+            { ...range, startColumn: range.endColumn }, // Start after the dot
+            dataSource,
+            currentMonaco
+          )
+          console.log(
+            '🔎 Qualified column suggestions:',
+            qualifiedColumnSuggestions.length
+          )
+          suggestions.push(...qualifiedColumnSuggestions)
+        }
+      } else if (tableContext.length > 0 || context.dataSources.length > 0) {
+        const columnSuggestions = getColumnSuggestions(
+          range,
+          textBeforeCursor,
+          tableContext,
+          context.dataSources,
+          currentMonaco
+        )
+        console.log('📊 Column suggestions:', columnSuggestions.length)
+        suggestions.push(...columnSuggestions)
       }
+
+      console.log('📈 Total suggestions generated:', suggestions.length)
+      console.log(
+        '💡 Sample suggestions:',
+        suggestions.slice(0, 3).map(s => s.label)
+      )
 
       return { suggestions }
     },
@@ -421,12 +495,12 @@ export function createDuckDBCompletionProvider(
     },
 
     resolveCompletionItem: async (item: any) => {
-      const monaco = (window as any).monaco
-      if (!monaco) return item
+      const currentMonaco = (window as any).monaco || monaco
+      if (!currentMonaco) return item
 
       // Add detailed documentation if this is a function
       if (
-        item.kind === monaco.languages.CompletionItemKind.Function &&
+        item.kind === currentMonaco.languages.CompletionItemKind.Function &&
         item.insertText
       ) {
         const functionName = item.insertText as string
@@ -542,13 +616,28 @@ function getTableSuggestions(
   const suggestions: any[] = []
 
   for (const dataSource of dataSources) {
+    // Build detailed documentation with schema information
+    let documentation = `${dataSource.type === 'file' ? 'Imported file' : 'Table'}: ${dataSource.name}`
+
+    if (dataSource.schema && dataSource.schema.length > 0) {
+      documentation += '\n\n**Schema:**\n'
+      for (const column of dataSource.schema.slice(0, 10)) {
+        // Limit to first 10 columns
+        documentation += `• \`${column.name}\` (${column.type})\n`
+      }
+      if (dataSource.schema.length > 10) {
+        documentation += `... and ${dataSource.schema.length - 10} more columns`
+      }
+    }
+
     suggestions.push({
       label: dataSource.tableName,
       kind: monaco.languages.CompletionItemKind.Class,
       insertText: dataSource.tableName,
       range,
       sortText: `c_${dataSource.tableName}`,
-      documentation: `${dataSource.type === 'file' ? 'Imported file' : 'Table'}: ${dataSource.name}`,
+      documentation,
+      detail: `${dataSource.schema?.length || 0} columns`,
     })
   }
 
@@ -564,15 +653,37 @@ function getTableContext(
 ): string[] {
   const tableNames: string[] = []
 
-  // Simple heuristic: look for table names after FROM, JOIN, INTO
-  const fromPattern = /\b(FROM|JOIN|INTO|UPDATE)\s+(\w+)/gi
-  let match
+  // Enhanced patterns to capture table names with optional aliases
+  // FROM table_name [AS alias]
+  // JOIN table_name [AS alias]
+  // INTO table_name
+  // UPDATE table_name
+  const tablePatterns = [
+    /\b(FROM|JOIN|INTO|UPDATE)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:AS\s+([a-zA-Z_][a-zA-Z0-9_]*))?\s*(?:$|\s+|,|\))/gi,
+    /\b(FROM|JOIN|INTO|UPDATE)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*([a-zA-Z_][a-zA-Z0-9_]*)?\s*(?:$|\s+|,|\))/gi,
+  ]
 
-  while ((match = fromPattern.exec(textBeforeCursor)) !== null) {
-    const tableName = match[2]
-    if (dataSources.some(ds => ds.tableName === tableName)) {
-      tableNames.push(tableName)
+  for (const pattern of tablePatterns) {
+    let match
+    // Reset regex lastIndex for each pattern
+    pattern.lastIndex = 0
+
+    while ((match = pattern.exec(textBeforeCursor)) !== null) {
+      const tableName = match[2]
+      if (dataSources.some(ds => ds.tableName === tableName)) {
+        tableNames.push(tableName)
+      }
     }
+  }
+
+  // Also handle subqueries and CTEs (more complex cases)
+  // Look for WITH clause table definitions
+  const withPattern = /\bWITH\s+([a-zA-Z_][a-zA-Z0-9_]*)\s+AS\s*\(/gi
+  let withMatch
+  while ((withMatch = withPattern.exec(textBeforeCursor)) !== null) {
+    // CTE tables are also available for column completion
+    const cteName = withMatch[1]
+    tableNames.push(cteName)
   }
 
   return tableNames
@@ -584,40 +695,88 @@ function getTableContext(
 function getColumnSuggestions(
   range: any,
   _textBeforeCursor: string,
-  _tableNames: string[],
+  tableNames: string[],
+  dataSources: DataSource[],
   monaco: any
 ): any[] {
-  // For now, return generic column suggestions
-  // In a real implementation, you would query the database schema
+  const suggestions: any[] = []
+  const columnNames = new Set<string>()
+
+  // Collect columns from the specified tables
+  for (const tableName of tableNames) {
+    const dataSource = dataSources.find(ds => ds.tableName === tableName)
+    if (dataSource?.schema) {
+      for (const column of dataSource.schema) {
+        if (!columnNames.has(column.name)) {
+          columnNames.add(column.name)
+          suggestions.push({
+            label: column.name,
+            kind: monaco.languages.CompletionItemKind.Field,
+            insertText: column.name,
+            range,
+            sortText: `d_${column.name}`,
+            documentation: `Column from \`${tableName}\`: ${column.name} (${column.type})${column.nullable ? ', nullable' : ''}`,
+            detail: `${column.type}${column.nullable ? ' (nullable)' : ''}`,
+          })
+        }
+      }
+    }
+  }
+
+  // If no table context found, provide columns from all available data sources
+  if (tableNames.length === 0) {
+    for (const dataSource of dataSources) {
+      if (dataSource.schema) {
+        for (const column of dataSource.schema) {
+          if (!columnNames.has(column.name)) {
+            columnNames.add(column.name)
+            suggestions.push({
+              label: column.name,
+              kind: monaco.languages.CompletionItemKind.Field,
+              insertText: column.name,
+              range,
+              sortText: `d_${column.name}`,
+              documentation: `Column from \`${dataSource.tableName}\`: ${column.name} (${column.type})${column.nullable ? ', nullable' : ''}`,
+              detail: `${column.type}${column.nullable ? ' (nullable)' : ''} · ${dataSource.tableName}`,
+            })
+          }
+        }
+      }
+    }
+  }
+
+  // Sort suggestions alphabetically for better UX
+  suggestions.sort((a, b) => a.label.localeCompare(b.label))
+
+  return suggestions
+}
+
+/**
+ * Get column suggestions for qualified column names (table.column)
+ */
+function getQualifiedColumnSuggestions(
+  range: any,
+  dataSource: DataSource,
+  monaco: any
+): any[] {
   const suggestions: any[] = []
 
-  const commonColumns = [
-    'id',
-    'name',
-    'created_at',
-    'updated_at',
-    'status',
-    'type',
-    'value',
-    'count',
-    'amount',
-    'price',
-    'quantity',
-    'description',
-    'email',
-    'phone',
-  ]
+  if (!dataSource.schema) return suggestions
 
-  for (const column of commonColumns) {
+  for (const column of dataSource.schema) {
     suggestions.push({
-      label: column,
+      label: column.name,
       kind: monaco.languages.CompletionItemKind.Field,
-      insertText: column,
+      insertText: column.name,
       range,
-      sortText: `d_${column}`,
-      documentation: `Common column name: ${column}`,
+      sortText: `a_${column.name}`, // Prioritize qualified columns
+      documentation: `${dataSource.tableName}.${column.name} (${column.type})${column.nullable ? ', nullable' : ''}`,
+      detail: `${column.type}${column.nullable ? ' (nullable)' : ''}`,
     })
   }
+
+  // Sort suggestions alphabetically
+  suggestions.sort((a, b) => a.label.localeCompare(b.label))
 
   return suggestions
 }
@@ -685,10 +844,46 @@ export function registerDuckDBCompletionProvider(
   monaco: any,
   context: CompletionContext
 ): any {
-  return monaco.languages.registerCompletionItemProvider(
-    'sql',
-    createDuckDBCompletionProvider(context)
+  console.log(
+    '🔧 Registering DuckDB completion provider with monaco:',
+    !!monaco
   )
+  console.log('🔧 Monaco languages available:', !!monaco?.languages)
+  console.log('🔧 Context provided:', {
+    dataSourcesCount: context.dataSources.length,
+    hasConnection: !!context.connection,
+  })
+
+  // Validate that monaco and languages are properly initialized
+  if (!monaco) {
+    console.error(
+      '❌ Monaco instance is required for registerDuckDBCompletionProvider'
+    )
+    return null
+  }
+
+  if (!monaco.languages) {
+    console.error(
+      '❌ Monaco languages API is not available - Monaco may not be fully initialized'
+    )
+    return null
+  }
+
+  if (!monaco.languages.CompletionItemKind) {
+    console.error('❌ Monaco CompletionItemKind not available')
+    return null
+  }
+
+  console.log('✅ Monaco validation passed, creating provider...')
+
+  const provider = createDuckDBCompletionProvider(context)
+  const registered = monaco.languages.registerCompletionItemProvider(
+    'sql',
+    provider
+  )
+
+  console.log('✅ Completion provider registered successfully')
+  return registered
 }
 
 /**

@@ -507,6 +507,7 @@ const SQLCockpitWrappedContent = ({
             },
             ...(schema && { schema }),
             createdAt: new Date(),
+            loadingStatus: 'loaded',
           }
 
           setDataSources(prev => [...prev, newDataSource])
@@ -526,7 +527,7 @@ const SQLCockpitWrappedContent = ({
     setQuery(selectQuery)
   }, [])
 
-  // Handle analytical query execution
+  // Handle insights query execution
   const handleExecuteInsightsQuery = useCallback(
     async (
       insightsQuery: InsightsQuery,
@@ -543,11 +544,11 @@ const SQLCockpitWrappedContent = ({
       setIsInsightsQuery(true)
       setCurrentInsightsQuery(insightsQuery)
 
-      // Clear format error when running analytical query
+      // Clear format error when running insights query
       clearFormatError()
 
       try {
-        // Update table references in analytical query to use the actual data source
+        // Update table references in insights query to use the actual data source
         let queryToExecute = insightsQuery.query
         if (dataSource) {
           // Replace generic table references with the actual data source table name
@@ -557,7 +558,7 @@ const SQLCockpitWrappedContent = ({
           )
         }
 
-        // Execute the analytical query
+        // Execute the insights query
         const result = await transformDuckDBResult(
           connection,
           queryToExecute,
@@ -1423,7 +1424,7 @@ const SQLCockpitWrappedContent = ({
 
         {/* Drag and Drop Overlay */}
         {isDragging && (
-          <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 rounded-lg flex items-start justify-center pt-20 pointer-events-none z-50">
+          <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 rounded-lg flex items-start justify-center pt-20 pointer-events-none z-1">
             <div className="bg-background border border-blue-500 rounded-lg p-6 shadow-lg">
               <div className="flex flex-col items-center gap-2">
                 <div className="text-blue-500 font-semibold">

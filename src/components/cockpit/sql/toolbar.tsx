@@ -115,6 +115,12 @@ export function SQLToolbar({
   // Format functionality is only available when there's content in the editor
   const canFormat = query.trim().length > 0
 
+  // AI Assist is only available when LLM completion is enabled AND at least one datasource is loaded
+  const hasActiveDataSources = dataSources.some(
+    ds => ds.loadingStatus === 'loaded'
+  )
+  const canUseAIAssist = hasLLMCompletion && onAIAssist && hasActiveDataSources
+
   // Reset animation when query state changes (prevents jumping)
   React.useEffect(() => {
     if (
@@ -218,7 +224,7 @@ export function SQLToolbar({
     <>
       <div
         className={cn(
-          'flex items-center justify-between px-4 py-3 border-b z-[50] rounded-t',
+          'flex items-center justify-between px-4 py-3 border-b rounded-t',
           className
         )}
         role="toolbar"
@@ -309,8 +315,14 @@ export function SQLToolbar({
           </div>
 
           {/* AI Assist button */}
-          {hasLLMCompletion && onAIAssist && (
-            <div title="AI-assisted query generation">
+          {canUseAIAssist && (
+            <div
+              title={
+                hasActiveDataSources
+                  ? 'AI-assisted query generation'
+                  : 'AI Assist disabled - no active data sources available'
+              }
+            >
               <Button
                 size="sm"
                 variant="ghost"

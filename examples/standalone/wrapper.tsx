@@ -26,10 +26,10 @@ async function llmCompletionFunction(params: {
   })
 }
 
-;(window as any).mountAIInsights = (
+export function mountAIInsights(
   element: Element,
-  initialDataSources: any[]
-) => {
+  initialDataSources: any[] = []
+) {
   const shadowRoot = element.attachShadow({ mode: 'open' })
 
   // Inject styles into shadow DOM
@@ -65,3 +65,6 @@ async function llmCompletionFunction(params: {
     </ThemeProvider>
   )
 }
+
+// Also expose on window for backwards compatibility with script tags
+;(window as any).mountAIInsights = mountAIInsights

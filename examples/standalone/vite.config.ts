@@ -1,36 +1,35 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { resolve } from 'path'
 
 export default defineConfig({
     plugins: [
         react(),
         tailwindcss(),
     ],
+    define: {
+        'process.env': JSON.stringify({
+            NODE_ENV: 'production'
+        }),
+    },
     build: {
-        // Lib mode for browser <script> usage
+        // Lib mode for proper ES module exports
         lib: {
             entry: './wrapper.tsx',
-            name: 'AIInsights',                    // window.AIInsights
+            formats: ['es'],
             fileName: () => 'foundation-wrapper.standalone.js',
-            formats: ['iife']                      // or ['umd']
         },
-        target: 'es2019',
+        target: 'es2020',
         minify: 'esbuild',
         sourcemap: false,
         rollupOptions: {
-            // Option 1: bundle everything (remove external)
-            // Option 2: keep React external and use CDN/script tags
-            //   external: ['react', 'react-dom'],
             output: {
-                // globals: {
-                //   react: 'React',
-                //   'react-dom': 'ReactDOM'
-                // }
-            }
+                chunkFileNames: 'chunks/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash][extname]',
+                // Don't use manualChunks in lib mode - it causes circular dependencies
+                // Let Vite handle chunking automatically
+            },
         }
     },
-    define: {
-        'process.env.NODE_ENV': JSON.stringify('production')
-    }
 })

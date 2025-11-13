@@ -28,17 +28,7 @@ const preview: Preview = {
       toc: true,
     },
     backgrounds: {
-      default: 'light',
-      values: {
-        light: {
-          name: 'Light',
-          value: '#ffffff',
-        },
-        dark: {
-          name: 'Dark',
-          value: '#2d2d30',
-        }
-      }
+      options: {}
     },
   },
 

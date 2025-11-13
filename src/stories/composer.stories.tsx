@@ -12,7 +12,7 @@ import {
   Target,
   Activity,
 } from 'lucide-react'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { InsightsQuery, QueryResult } from '@/types/sql'
 import {
   Card,
@@ -37,7 +37,7 @@ const mockSavedQueries = [
   },
 ]
 
-// Mock analytical queries
+// Mock insights queries
 const mockAnalyticalQueries: InsightsQuery[] = [
   {
     id: 'summary-stats',

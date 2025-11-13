@@ -150,7 +150,7 @@ function ResultsSelectionToolbar({
 }: ResultsSelectionToolbarProps): React.ReactNode {
   return (
     <div
-      className="sticky bottom-0 h-[68px] min-h-[68px] border-t backdrop-blur-sm z-60 bg-background flex items-center justify-between px-3 py-2 shrink-0"
+      className="sticky bottom-0 h-[68px] min-h-[68px] border-t backdrop-blur-sm z-1 bg-background flex items-center justify-between px-3 py-2 shrink-0"
       data-selection-toolbar="true"
     >
       {result && result.data.length > 0 && (
@@ -264,7 +264,7 @@ function ResultsSelectionToolbar({
                     Copy
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="z-80">
+                <DropdownMenuContent className="z-1">
                   {selectedColumns.size > 0 && (
                     <>
                       <DropdownMenuItem onClick={onCopySelectedColumnsAsCSV}>
@@ -316,7 +316,7 @@ function ResultsSelectionToolbar({
                     Save
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="z-80">
+                <DropdownMenuContent className="z-1">
                   {selectedColumns.size > 0 && (
                     <>
                       <DropdownMenuItem
@@ -420,7 +420,7 @@ export function ResultsPanel({
     [columnWidths]
   )
 
-  // Toggle between chart and table view for analytical queries
+  // Toggle between chart and table view for insights queries
   const [showChartView, setShowChartView] = React.useState(!!insightsQuery)
 
   // Enhanced selection state
@@ -1372,7 +1372,7 @@ export function ResultsPanel({
   const resultsTableContent = (
     <div className="h-full bg-muted/50 flex flex-col mt-0">
       {/* Fixed Header */}
-      <div className="sticky top-0 z-30 bg-background border-b border-border">
+      <div className="sticky top-0 z-1 bg-background border-b border-border">
         <div
           className="overflow-x-auto blockether-scrollbar-hidden"
           ref={headerScrollRef}
@@ -1412,7 +1412,7 @@ export function ResultsPanel({
                           ? 'bg-primary/10'
                           : 'hover:bg-muted/50',
                         selectedColumns.has(index) &&
-                        'bg-primary/20 ring-2 ring-primary/50',
+                          'bg-primary/20 ring-2 ring-primary/50',
                         selectionMode === 'column' && 'hover:bg-primary/30'
                       )}
                       style={{ minWidth: `${MIN_COLUMN_WIDTH}px` }}

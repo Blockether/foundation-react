@@ -148,7 +148,7 @@ Files are served through Storybook's static file configuration:
 - **Default** - All data sources loaded (CSV + Parquet)
 - **CSVOnly** - Only CSV data sources
 - **ParquetOnly** - Only Parquet data sources
-- **ComplexQuery** - Aggregation and analytical queries
+- **ComplexQuery** - Aggregation and insights queries
 - **JoinQuery** - Multi-table join operations
 - **AggregationQuery** - Complex aggregation with LEFT JOIN
 - **Interactive** - Switch between CSV and Parquet formats dynamically

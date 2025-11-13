@@ -13,6 +13,9 @@
       "DOM",
       "DOM.Iterable"
     ],
+    "types": [
+      "vite/client"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Bundler mode */
@@ -48,6 +51,7 @@
     "node_modules",
     "dist",
     "build",
-    "tests"
+    "tests",
+    "examples"
   ]
 }

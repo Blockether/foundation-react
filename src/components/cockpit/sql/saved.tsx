@@ -119,7 +119,7 @@ export function SavedQueries({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-50 flex flex-col"
+          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-1 flex flex-col"
         >
           {/* Search input */}
           {queries.length > 3 && (

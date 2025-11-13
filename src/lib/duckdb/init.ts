@@ -29,6 +29,30 @@ export default async function initializeDuckDb(options?: {
 }
 
 /**
+ * Get DuckDB bundles using dynamic imports for code splitting
+ */
+const getDuckDBBundles = async () => {
+  const [duckdb_wasm, mvp_worker, duckdb_wasm_next, eh_worker] =
+    await Promise.all([
+      import('@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url'),
+      import('@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url'),
+      import('@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url'),
+      import('@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'),
+    ])
+
+  return {
+    mvp: {
+      mainModule: duckdb_wasm.default,
+      mainWorker: mvp_worker.default,
+    },
+    eh: {
+      mainModule: duckdb_wasm_next.default,
+      mainWorker: eh_worker.default,
+    },
+  }
+}
+
+/**
  * Initialize DuckGlobalDatabaseHandle with a browser-specific Wasm bundle.
  */
 const _initializeDuckDb = async (
@@ -36,22 +60,20 @@ const _initializeDuckDb = async (
 ): Promise<AsyncDuckDB> => {
   const start = performance.now()
 
+  const bundles = await getDuckDBBundles()
+
   // Select a bundle based on browser checks
-  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles()
-  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES)
+  const bundle = await duckdb.selectBundle(bundles)
 
-  const worker_url = URL.createObjectURL(
-    new Blob([`importScripts("${bundle.mainWorker!}");`], {
-      type: 'text/javascript',
-    })
-  )
+  if (!bundle.mainWorker) {
+    throw new Error('No suitable DuckDB WASM bundle found for this browser.')
+  }
 
-  // Instantiate the async version of DuckDB-wasm
-  const worker = new Worker(worker_url)
+  // Instantiate the asynchronus version of DuckDB-wasm
+  const worker = new Worker(bundle.mainWorker)
   const logger = new duckdb.ConsoleLogger()
-  const db = new AsyncDuckDB(logger, worker)
+  const db = new duckdb.AsyncDuckDB(logger, worker)
   await db.instantiate(bundle.mainModule, bundle.pthreadWorker)
-  URL.revokeObjectURL(worker_url)
 
   if (config) {
     if (config.path) {

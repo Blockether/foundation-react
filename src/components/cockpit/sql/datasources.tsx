@@ -41,8 +41,8 @@ export interface DataSourcesProps {
   onImportFile?: ((file: File) => Promise<void>) | undefined
   onSelectDataSource?: ((dataSource: DataSource) => void) | undefined
   onExecuteInsightsQuery?:
-  | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
-  | undefined
+    | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
+    | undefined
   onRemoveDataSource?: ((dataSource: DataSource) => void) | undefined
   className?: string
   /**
@@ -175,7 +175,7 @@ export function DataSources({
   }
 
   const getAvailableQueries = (dataSource: DataSource): InsightsQuery[] => {
-    // Filter analytical queries based on targeting criteria
+    // Filter insights queries based on targeting criteria
     if (!analyticalQueries) return []
 
     return analyticalQueries.filter(query => {
@@ -255,7 +255,7 @@ export function DataSources({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-50 flex flex-col min-h-[160px] overflow-visible"
+          className="absolute top-full right-0 mt-1 w-80 border shadow-lg bg-background text-foreground rounded-sm z-2 flex flex-col min-h-40 overflow-visible"
         >
           {/* Header */}
           <div className="px-3 py-4 border-b">
@@ -293,7 +293,7 @@ export function DataSources({
           {/* Data sources list */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-[64px]">
             {filteredDataSources.length === 0 ? (
-              <div className="flex items-center justify-center min-h-[40vh] p-8">
+              <div className="flex items-center justify-center min-h-60 p-8">
                 <div className="text-center">
                   <div className="flex items-center justify-center w-16 h-16 bg-muted/30 rounded-full mb-4 mx-auto border">
                     <Database className="w-8 h-8 text-muted-foreground" />
@@ -312,7 +312,7 @@ export function DataSources({
               <div role="menu">
                 {filteredDataSources.map((dataSource, index) => {
                   const availableQueries = getAvailableQueries(dataSource)
-                  const hasAnalysis =
+                  const hasInsights =
                     onExecuteInsightsQuery && availableQueries.length > 0
                   const isDisabled =
                     dataSource.loadingStatus === 'failed' ||
@@ -390,7 +390,7 @@ export function DataSources({
                                 )}
                                 {isFailed && (
                                   <span
-                                    className="cursor-help relative z-50 flex-shrink-0"
+                                    className="cursor-help relative z-2 flex-shrink-0"
                                     title={
                                       dataSource.loadingError ||
                                       'Failed to load'
@@ -422,7 +422,7 @@ export function DataSources({
                         )}
 
                         {/* Analyze button */}
-                        {hasAnalysis && !isDisabled && (
+                        {hasInsights && !isDisabled && (
                           <div className="px-2 cursor-pointer">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -435,7 +435,10 @@ export function DataSources({
                                   <BarChart3 className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuContent
+                                align="end"
+                                className="w-56 z-3"
+                              >
                                 <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                                   Quick Analysis
                                 </div>

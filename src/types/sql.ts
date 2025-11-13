@@ -81,13 +81,13 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
   resultsMaxHeight?: string
 
   /**
-   * List of analytical queries for data analysis
+   * List of insights queries for data analysis
    * If provided, these will be available for execution on data sources
    */
   analyticalQueries?: InsightsQuery[]
 
   /**
-   * Callback function for executing analytical queries with data source context
+   * Callback function for executing insights queries with data source context
    */
   onExecuteInsightsQuery?: (
     query: InsightsQuery,
@@ -96,7 +96,7 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
 
   /**
    * Initial data sources to populate the data sources panel
-   * If provided, these will be available for analytical queries immediately
+   * If provided, these will be available for insights queries immediately
    */
   initialDataSources?: DataSource[]
 
@@ -458,7 +458,7 @@ export type InsightsQueryCategory =
  */
 export interface InsightsQuery {
   /**
-   * Unique identifier for the analytical query
+   * Unique identifier for the insights query
    */
   id: string
 
@@ -509,7 +509,7 @@ export interface InsightsQuery {
  */
 export interface InsightsQueryResult {
   /**
-   * The analytical query that was executed
+   * The insights query that was executed
    */
   query: InsightsQuery
 
@@ -538,7 +538,7 @@ export interface InsightsQueryResult {
     totalRows: number
 
     /**
-     * Whether this was an analytical query (vs manual query)
+     * Whether this was an insights query (vs manual query)
      */
     isAnalytical: boolean
   }
@@ -627,7 +627,7 @@ export interface DataSource {
   schema?: ColumnInfo[]
 
   /**
-   * Available analytical queries for this data source
+   * Available insights queries for this data source
    */
   analyticalQueries?: InsightsQuery[]
 

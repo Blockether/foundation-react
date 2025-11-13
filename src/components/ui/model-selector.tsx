@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import { cn } from '@/lib/utils'
 import type { ReactNode, ComponentProps } from 'react'
 
@@ -41,7 +42,9 @@ export const ModelSelectorContent = ({
   ...props
 }: ModelSelectorContentProps) => (
   <DialogContent className={cn('p-0', className)} {...props}>
-    <DialogTitle className="sr-only">{title}</DialogTitle>
+    <VisuallyHidden>
+      <DialogTitle>{title}</DialogTitle>
+    </VisuallyHidden>
     <Command className="**:data-[slot=command-input-wrapper]:h-auto">
       {children}
     </Command>

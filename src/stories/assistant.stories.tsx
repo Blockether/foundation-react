@@ -6,7 +6,7 @@ import type {
   ActionCallbacks,
   Message,
 } from '@/components/cockpit/ai/assistant'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 
 const meta: Meta<typeof AssistantCockpit> = {
   title: 'Assistant Cockpit',

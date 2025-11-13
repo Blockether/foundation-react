@@ -14,6 +14,13 @@ import {
   registerDuckDBCompletionProvider,
   CompletionContext,
 } from '@/lib/sql-completion'
+import { loader } from '@monaco-editor/react'
+import * as monaco from 'monaco-editor'
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
+import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
 interface SQLEditorProps {
   value: string
@@ -68,9 +75,48 @@ export function SQLEditor({
 }: SQLEditorProps): React.ReactNode {
   const editorRef = useRef<any>(null)
   const completionProviderRef = useRef<any>(null)
+  const monacoRef = useRef<any>(null)
   const { theme } = useTheme()
   const monacoTheme = theme === 'light' ? 'light' : 'vs-dark'
   const [currentValue, setCurrentValue] = useState(value)
+  const [isMonacoLoaded, setIsMonacoLoaded] = useState(false)
+
+  // Initialize Monaco Editor for Vite
+  useEffect(() => {
+    // Configure Monaco workers for Vite
+    self.MonacoEnvironment = {
+      getWorker(_, label) {
+        if (label === 'json') {
+          return new jsonWorker()
+        }
+        if (label === 'css' || label === 'scss' || label === 'less') {
+          return new cssWorker()
+        }
+        if (label === 'html' || label === 'handlebars' || label === 'razor') {
+          return new htmlWorker()
+        }
+        if (label === 'typescript' || label === 'javascript') {
+          return new tsWorker()
+        }
+        return new editorWorker()
+      },
+    }
+
+    loader.config({ monaco })
+
+    // Initialize Monaco and mark as loaded
+    loader
+      .init()
+      .then(monaco => {
+        // Expose monaco globally for completion provider access
+        ;(window as any).monaco = monaco
+        console.log('✅ Monaco initialized and exposed globally')
+        setIsMonacoLoaded(true)
+      })
+      .catch(error => {
+        console.error('Failed to initialize Monaco Editor:', error)
+      })
+  }, [])
 
   // Configure editor options
   const editorOptions = React.useMemo(
@@ -127,9 +173,10 @@ export function SQLEditor({
   const handleEditorDidMount: OnMount = useCallback(
     (editor, monaco) => {
       editorRef.current = editor
+      monacoRef.current = monaco
 
       // Register DuckDB completion provider
-      if (enableAutoComplete) {
+      if (enableAutoComplete && monaco && monaco.languages) {
         const completionContext: CompletionContext = {
           dataSources,
           query: value,
@@ -140,6 +187,10 @@ export function SQLEditor({
         completionProviderRef.current = registerDuckDBCompletionProvider(
           monaco,
           completionContext
+        )
+      } else if (enableAutoComplete) {
+        console.warn(
+          'SQL autocomplete disabled - Monaco not properly initialized'
         )
       }
 
@@ -199,195 +250,6 @@ export function SQLEditor({
         })
       }
 
-      // Add our comment toggle shortcut with better keybinding approach
-      setTimeout(() => {
-        // Try to override Monaco's built-in comment action first
-        const commentAction = editor.getAction('editor.action.commentLine')
-        if (commentAction) {
-          // Create a custom action that calls the built-in one
-          editor.addAction({
-            id: 'override-comment-line',
-            label: 'Toggle Line Comment',
-            keybindings: [
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash,
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.NumpadDivide,
-              // Add support for German layout (Shift+7 for /)
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit7,
-            ],
-            run: () => {
-              console.log('Override comment action triggered')
-              commentAction.run()
-            },
-          })
-        } else {
-          // Fallback to manual implementation
-          editor.addAction({
-            id: 'toggle-comment',
-            label: 'Toggle Comment',
-            keybindings: [
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.Slash,
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.NumpadDivide,
-              // Add support for German layout (Shift+7 for /)
-              monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit7,
-            ],
-            run: () => {
-              console.log('Toggle comment action triggered')
-              const selection = editor.getSelection()
-              const model = editor.getModel()
-
-              if (!model || !selection) {
-                console.log('No model or selection found')
-                return
-              }
-
-              // Manual implementation for SQL commenting
-              const getPosition = selection.getPosition()
-              if (!getPosition) {
-                console.log('No cursor position found')
-                return
-              }
-
-              console.log(
-                'Cursor position:',
-                getPosition.lineNumber,
-                getPosition.column
-              )
-              console.log('Selection is empty:', selection.isEmpty())
-
-              let startLine: number
-              let endLine: number
-
-              if (selection.isEmpty()) {
-                // No selection - comment/uncomment current line where cursor is
-                startLine = getPosition.lineNumber
-                endLine = getPosition.lineNumber
-                console.log('No selection - commenting line:', startLine)
-              } else {
-                // Selection exists - comment/uncomment selected lines
-                startLine = selection.getStartPosition().lineNumber
-                endLine = selection.getEndPosition().lineNumber
-                console.log(
-                  'Selection found - commenting lines:',
-                  startLine,
-                  'to',
-                  endLine
-                )
-              }
-
-              // Process each line in the range
-              for (let line = startLine; line <= endLine; line++) {
-                const lineContent = model.getLineContent(line)
-                const trimmedLine = lineContent.trimStart()
-                const isCommented = trimmedLine.startsWith('--')
-
-                if (isCommented) {
-                  // Remove comment - preserve original indentation
-                  const uncommented = lineContent.replace(/^(\s*)--\s?/, '$1')
-                  model.applyEdits([
-                    {
-                      range: {
-                        startLineNumber: line,
-                        startColumn: 1,
-                        endLineNumber: line,
-                        endColumn: lineContent.length + 1,
-                      },
-                      text: uncommented,
-                    },
-                  ])
-                } else {
-                  // Add comment - preserve original indentation
-                  const commented = `-- ${lineContent}`
-                  model.applyEdits([
-                    {
-                      range: {
-                        startLineNumber: line,
-                        startColumn: 1,
-                        endLineNumber: line,
-                        endColumn: lineContent.length + 1,
-                      },
-                      text: commented,
-                    },
-                  ])
-                }
-              }
-            },
-          })
-        }
-      }, 100)
-
-      // Configure SQL language features
-      if (enableSyntaxHighlighting) {
-        const model = editor.getModel()
-        if (model) {
-          // Set language to SQL
-          monaco.editor.setModelLanguage(model, 'sql')
-
-          // Configure comment tokens for SQL
-          monaco.languages.setLanguageConfiguration('sql', {
-            comments: {
-              blockComment: ['/*', '*/'],
-              lineComment: '--',
-            },
-            autoClosingPairs: [
-              { open: '{', close: '}' },
-              { open: '[', close: ']' },
-              { open: '(', close: ')' },
-              { open: '"', close: '"', notIn: ['string'] },
-              { open: "'", close: "'", notIn: ['string', 'comment'] },
-            ],
-          })
-
-          // Add context menu item for commenting
-          editor.addAction({
-            id: 'comment-line-context',
-            label: 'Toggle Line Comment',
-            contextMenuGroupId: 'modification',
-            contextMenuOrder: 1,
-            run: () => {
-              const selection = editor.getSelection()
-              const model = editor.getModel()
-
-              if (!model || !selection) return
-
-              const getPosition = selection.getPosition()
-              if (!getPosition) return
-
-              const lineNumber = getPosition.lineNumber
-              const lineContent = model.getLineContent(lineNumber)
-              const isCommented = lineContent.trimStart().startsWith('--')
-
-              if (isCommented) {
-                const uncommented = lineContent.replace(/^(\s*)--\s?/, '$1')
-                model.applyEdits([
-                  {
-                    range: {
-                      startLineNumber: lineNumber,
-                      startColumn: 1,
-                      endLineNumber: lineNumber,
-                      endColumn: lineContent.length + 1,
-                    },
-                    text: uncommented,
-                  },
-                ])
-              } else {
-                const commented = `-- ${lineContent}`
-                model.applyEdits([
-                  {
-                    range: {
-                      startLineNumber: lineNumber,
-                      startColumn: 1,
-                      endLineNumber: lineNumber,
-                      endColumn: lineContent.length + 1,
-                    },
-                    text: commented,
-                  },
-                ])
-              }
-            },
-          })
-        }
-      }
-
       // Call custom onMount callback
       if (onMount) {
         onMount(editor)
@@ -413,15 +275,21 @@ export function SQLEditor({
     if (
       editorRef.current &&
       enableAutoComplete &&
-      completionProviderRef.current
+      completionProviderRef.current &&
+      isMonacoLoaded
     ) {
       const editor = editorRef.current
-      const monaco = (window as any).monaco
 
-      // Dispose existing provider
-      completionProviderRef.current.dispose()
+      // Dispose existing provider safely
+      if (
+        completionProviderRef.current &&
+        completionProviderRef.current.dispose
+      ) {
+        completionProviderRef.current.dispose()
+        completionProviderRef.current = null
+      }
 
-      // Register new provider with updated context
+      // Register new provider with updated context using the stored monaco reference
       const completionContext: CompletionContext = {
         dataSources,
         query: currentValue,
@@ -429,12 +297,16 @@ export function SQLEditor({
         connection,
       }
 
-      completionProviderRef.current = registerDuckDBCompletionProvider(
-        monaco,
-        completionContext
-      )
+      // Use the stored monaco instance
+      const monaco = monacoRef.current
+      if (monaco && monaco.languages) {
+        completionProviderRef.current = registerDuckDBCompletionProvider(
+          monaco,
+          completionContext
+        )
+      }
     }
-  }, [dataSources, enableAutoComplete, connection])
+  }, [dataSources, enableAutoComplete, connection, isMonacoLoaded])
 
   // Update current value for completion context
   useEffect(() => {
@@ -444,8 +316,12 @@ export function SQLEditor({
   // Cleanup completion provider on unmount
   useEffect(() => {
     return () => {
-      if (completionProviderRef.current) {
+      if (
+        completionProviderRef.current &&
+        completionProviderRef.current.dispose
+      ) {
         completionProviderRef.current.dispose()
+        completionProviderRef.current = null
       }
     }
   }, [])
@@ -472,22 +348,24 @@ export function SQLEditor({
       }
       data-sql-editor="true"
     >
-      {/* Monaco Editor - use theme prop for dynamic theming */}
-      <Editor
-        height="100%"
-        language="sql"
-        className="pt-2 pb-2"
-        value={value}
-        onChange={handleEditorOnChange}
-        theme={monacoTheme}
-        options={editorOptions}
-        onMount={handleEditorDidMount}
-        loading={
-          <div className="flex items-center justify-center h-full">
-            <div className="text-sm ">Loading SQL editor...</div>
-          </div>
-        }
-      />
+      {/* Show loading state while Monaco is initializing */}
+      {!isMonacoLoaded ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-sm">Loading editor...</div>
+        </div>
+      ) : (
+        /* Monaco Editor - use theme prop for dynamic theming */
+        <Editor
+          height="100%"
+          language="sql"
+          className="pt-2 pb-2"
+          value={value}
+          onChange={handleEditorOnChange}
+          theme={monacoTheme}
+          options={editorOptions}
+          onMount={handleEditorDidMount}
+        />
+      )}
     </div>
   )
 }
