@@ -37,7 +37,7 @@ export default defineConfig({
         'process.env': JSON.stringify({
             NODE_ENV: 'production'
         }),
-        BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION: JSON.stringify('/assets/')
+        BLOCKETHER_FOUNDATION_ASSETS_PATH: JSON.stringify('/assets/')
     },
     build: {
         // Lib mode for proper ES module exports

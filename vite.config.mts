@@ -89,9 +89,5 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false,
     emptyOutDir: true,
-  },
-  // Configure Monaco Editor worker handling
-  optimizeDeps: {
-    exclude: ['@monaco-editor/react', 'monaco-editor', '@duckdb/duckdb-wasm', 'sql-formatter', 'apache-arrow'],
   }
 })

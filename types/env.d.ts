@@ -8,7 +8,7 @@
  * - Custom path ('./assets/') in standalone: loads from assets folder
  */
 declare global {
-  const BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION: string
+  const BLOCKETHER_FOUNDATION_ASSETS_PATH: string
 }
 
-export {}
+export { }

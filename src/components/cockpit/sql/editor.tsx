@@ -93,13 +93,14 @@ export function SQLEditor({
 
   // Initialize Monaco Editor
   useEffect(() => {
+    loader.config({ monaco })
+
     self.MonacoEnvironment = {
-      getWorker: async (_, __) => {
-        return new (await import('monaco-editor/esm/vs/editor/editor.worker?worker')).default()
-      },
+      getWorkerUrl(workerId: string, label: string) {
+        return import.meta.resolve('/node_modules/monaco-editor/esm/vs/editor/editor.worker.js');
+      }
     }
 
-    loader.config({ monaco })
 
     // Initialize Monaco and mark as loaded
     loader
@@ -113,6 +114,7 @@ export function SQLEditor({
       .catch(error => {
         logger.error('Failed to initialize Monaco Editor:', error)
       })
+
   }, [logger])
 
   // Configure editor options

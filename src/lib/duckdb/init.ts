@@ -62,18 +62,18 @@ const duckdbBundles = async () => {
   }
 }
 
-const MVP_MODULE = (BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' && BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION + 'duckdb-mvp.wasm') || 'unknown';
-const MVP_WORKER = (BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' && BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION + 'duckdb-browser-mvp.worker.js') || 'unknown';
-const EH_MODULE = (BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' && BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION + 'duckdb-eh.wasm') || 'unknown';
-const EH_WORKER = (BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' && BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION + 'duckdb-browser-eh.worker.js') || 'unknown';
+const MVP_MODULE = (BLOCKETHER_FOUNDATION_ASSETS_PATH !== '' && BLOCKETHER_FOUNDATION_ASSETS_PATH + 'duckdb-mvp.wasm') || 'unknown';
+const MVP_WORKER = (BLOCKETHER_FOUNDATION_ASSETS_PATH !== '' && BLOCKETHER_FOUNDATION_ASSETS_PATH + 'duckdb-browser-mvp.worker.js') || 'unknown';
+const EH_MODULE = (BLOCKETHER_FOUNDATION_ASSETS_PATH !== '' && BLOCKETHER_FOUNDATION_ASSETS_PATH + 'duckdb-eh.wasm') || 'unknown';
+const EH_WORKER = (BLOCKETHER_FOUNDATION_ASSETS_PATH !== '' && BLOCKETHER_FOUNDATION_ASSETS_PATH + 'duckdb-browser-eh.worker.js') || 'unknown';
 
-const bundleResolver = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' ?
+const bundleResolver = BLOCKETHER_FOUNDATION_ASSETS_PATH !== '' ?
   (
     async () => {
       const logger = getGlobalLogger()
       try {
         logger.info('Standalone DuckDB paths:', {
-          BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION,
+          BLOCKETHER_FOUNDATION_ASSETS_PATH,
           MVP_MODULE,
           MVP_WORKER,
           EH_MODULE,
@@ -104,9 +104,9 @@ const bundleResolver = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' ?
         }
 
         // Validate that all files use the same base location
-        const baseUrl = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION
+        const baseUrl = BLOCKETHER_FOUNDATION_ASSETS_PATH
         if (!MVP_MODULE.startsWith(baseUrl) || !MVP_WORKER.startsWith(baseUrl) ||
-            !EH_MODULE.startsWith(baseUrl) || !EH_WORKER.startsWith(baseUrl)) {
+          !EH_MODULE.startsWith(baseUrl) || !EH_WORKER.startsWith(baseUrl)) {
           throw new Error(`Path inconsistency: All DuckDB files must be served from the same base location: ${baseUrl}`)
         }
 
