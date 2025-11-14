@@ -37,11 +37,13 @@ const externals = [
   '@monaco-editor/react',
   'recharts',
   'tokenlens',
+  'sql-formatter',
   'use-stick-to-bottom',
   'nanoid',
   'embla-carousel-react',
   'cmdk',
   'motion',
+  'apache-arrow',
   'sonner',
   'streamdown',
   'monaco-editor'
@@ -90,6 +92,6 @@ export default defineConfig({
   },
   // Configure Monaco Editor worker handling
   optimizeDeps: {
-    exclude: ['@monaco-editor/react', 'monaco-editor', '@duckdb/duckdb-wasm'],
+    exclude: ['@monaco-editor/react', 'monaco-editor', '@duckdb/duckdb-wasm', 'sql-formatter', 'apache-arrow'],
   }
 })
