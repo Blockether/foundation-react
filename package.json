@@ -1,6 +1,6 @@
 {
   "name": "@blockether/foundation-react",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Browser-based SQL cockpit and AI chat UI components for React. Powered by DuckDB-WASM and shadcn/ui. Designed for agno and blockether_foundation Python libraries.",
   "type": "module",
   "module": "dist/foundation-react.js",
