@@ -2,7 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import * as React from 'react'
 
-import { useShadowDOM } from '@/lib/shadow-dom'
+import { useShadowDOM } from '@/lib/foundation'
 import { cn } from '@/lib/utils'
 
 function DropdownMenu({

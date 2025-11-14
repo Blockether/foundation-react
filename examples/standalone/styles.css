@@ -1,11 +1,52 @@
 @import '@blockether/foundation-react/styles';
 @import 'sonner/dist/styles.css';
 @import 'monaco-editor/min/vs/editor/editor.main.css';
-@import 'monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.css';
 
-
+/* Load codicon font early for shadow DOM compatibility */
 @font-face {
     font-family: 'codicon';
     font-display: block;
     src: url('monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.ttf') format('truetype');
+}
+
+/* Codicon base classes (replaces monaco's codicon.css to work with shadow DOM) */
+.codicon[class*='codicon-'] {
+    font: normal normal normal 16px/1 codicon;
+    display: inline-block;
+    text-decoration: none;
+    text-rendering: auto;
+    text-align: center;
+    text-transform: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Codicon modifiers */
+.codicon-wrench-subaction {
+    opacity: 0.5;
+}
+
+@keyframes codicon-spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.codicon-sync.codicon-modifier-spin,
+.codicon-loading.codicon-modifier-spin,
+.codicon-gear.codicon-modifier-spin,
+.codicon-notebook-state-executing.codicon-modifier-spin {
+    animation: codicon-spin 1.5s steps(30) infinite;
+}
+
+.codicon-modifier-disabled {
+    opacity: 0.4;
+}
+
+.codicon-loading,
+.codicon-tree-item-loading::before {
+    animation-duration: 1s !important;
+    animation-timing-function: cubic-bezier(0.53, 0.21, 0.29, 0.67) !important;
 }

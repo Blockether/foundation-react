@@ -8,8 +8,7 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react'
 import { Editor, OnMount } from '@monaco-editor/react'
 import { cn } from '@/lib/utils'
-import { useTheme } from '../../theme'
-import { useShadowDOM } from '@/lib/shadow-dom'
+import { useTheme, useShadowDOM, useLogger } from '@/lib/foundation'
 import { DataSource } from '@/types/sql'
 import {
   registerDuckDBCompletionProvider,
@@ -17,7 +16,6 @@ import {
 } from '@/lib/sql-completion'
 import { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import { configureMonacoEnvironment } from '@/lib/monaco/worker'
 
 interface SQLEditorProps {
   value: string
@@ -75,27 +73,31 @@ export function SQLEditor({
   const monacoRef = useRef<any>(null)
   const { theme } = useTheme()
   const { container } = useShadowDOM()
+  const logger = useLogger()
 
   // Log shadow DOM detection for debugging
   React.useEffect(() => {
     if (container) {
       if (container instanceof ShadowRoot) {
-        console.log('[blockether-foundation-react] SQLEditor: ShadowRoot detected, enabling ARIA container support')
+        logger.debug('SQLEditor: ShadowRoot detected, enabling ARIA container support')
       } else if ('shadowRoot' in container && container.shadowRoot) {
-        console.log('[blockether-foundation-react] SQLEditor: HTMLElement with ShadowRoot detected, enabling ARIA container support')
+        logger.debug('SQLEditor: HTMLElement with ShadowRoot detected, enabling ARIA container support')
       }
     } else {
-      console.log('[blockether-foundation-react] SQLEditor: Running in regular DOM mode')
+      logger.debug('SQLEditor: Running in regular DOM mode')
     }
-  }, [container])
+  }, [container, logger])
   const monacoTheme = theme === 'light' ? 'light' : 'vs-dark'
   const [currentValue, setCurrentValue] = useState(value)
   const [isMonacoLoaded, setIsMonacoLoaded] = useState(false)
 
   // Initialize Monaco Editor
   useEffect(() => {
-    // Configure Monaco environment with externalized worker
-    configureMonacoEnvironment()
+    self.MonacoEnvironment = {
+      getWorker: async (_, __) => {
+        return new (await import('monaco-editor/esm/vs/editor/editor.worker?worker')).default()
+      },
+    }
 
     loader.config({ monaco })
 
@@ -105,13 +107,13 @@ export function SQLEditor({
       .then(monaco => {
         // Expose monaco globally for completion provider access
         ; (window as any).monaco = monaco
-        console.log('[blockether-foundation-react] Monaco initialized and exposed globally')
+        logger.info('Monaco initialized and exposed globally')
         setIsMonacoLoaded(true)
       })
       .catch(error => {
-        console.error('[blockether-foundation-react] Failed to initialize Monaco Editor:', error)
+        logger.error('Failed to initialize Monaco Editor:', error)
       })
-  }, [])
+  }, [logger])
 
   // Configure editor options
   const editorOptions = React.useMemo(
@@ -172,6 +174,42 @@ export function SQLEditor({
     [tabSize, wordWrap, minimap, enableAutoComplete, container]
   )
 
+  // Intercept Monaco's dynamic stylesheet injection for shadow DOM
+  useEffect(() => {
+    if (!isMonacoLoaded || !(container instanceof ShadowRoot)) return
+
+    logger.debug('Setting up Monaco stylesheet interception for shadow DOM')
+
+    // Find all dynamically injected Monaco stylesheets in document head
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeName === 'STYLE' && node.textContent?.includes('codicon-')) {
+            logger.debug('Copying Monaco icon stylesheet to shadow DOM')
+            // Clone the style element and append to shadow DOM
+            const clonedStyle = (node as HTMLStyleElement).cloneNode(true) as HTMLStyleElement
+            container.appendChild(clonedStyle)
+          }
+        })
+      })
+    })
+
+    // Observe document head for new style elements
+    observer.observe(document.head, { childList: true })
+
+    // Also check for existing Monaco icon stylesheets
+    document.head.querySelectorAll('style').forEach((style) => {
+      if (style.textContent?.includes('codicon-')) {
+        logger.debug('Copying existing Monaco icon stylesheet to shadow DOM')
+        const clonedStyle = style.cloneNode(true) as HTMLStyleElement
+        container.appendChild(clonedStyle)
+      }
+    })
+
+    // Cleanup observer on unmount
+    return () => observer.disconnect()
+  }, [isMonacoLoaded, container, logger])
+
   // Handle editor mount
   const handleEditorDidMount: OnMount = useCallback(
     (editor, monaco) => {
@@ -192,9 +230,7 @@ export function SQLEditor({
           completionContext
         )
       } else if (enableAutoComplete) {
-        console.warn(
-          '[blockether-foundation-react] SQL autocomplete disabled - Monaco not properly initialized'
-        )
+        logger.warn('SQL autocomplete disabled - Monaco not properly initialized')
       }
 
       // Handle focus/blur to control selection behavior
@@ -258,7 +294,7 @@ export function SQLEditor({
         onMount(editor)
       }
     },
-    [onExecute, onFormat, onMount, enableFormatting, enableSyntaxHighlighting]
+    [onExecute, onFormat, onMount, enableFormatting, enableSyntaxHighlighting, logger]
   )
 
   // Handle window resize

@@ -4,7 +4,7 @@
  * A wrapper around Sonner toast notifications that integrates with the theme system.
  */
 
-import { useTheme } from '@/components/theme'
+import { useTheme } from '@/lib/foundation'
 import { Toaster as Sonner } from 'sonner'
 
 type ToasterProps = React.ComponentProps<typeof Sonner>

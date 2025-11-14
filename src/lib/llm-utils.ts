@@ -34,7 +34,7 @@ export const formatLLMCompletionPrompt = async (params: {
       comments += `\n--   Columns: ${ds.schema.map((col: any) => `${col.name} (${col.type})${col.nullable ? ' | null' : ''}`).join(', ')}`
     }
     if (ds.sampleData && ds.sampleData.length > 0) {
-      comments += `\n--   Sample Data: ${JSON.stringify(ds.sampleData.slice(0, 3), null, 2)}`
+      comments += `\n--   Sample Data retrieved via \`SELECT * from ${ds.tableName} LIMIT 3\`: ${JSON.stringify(ds.sampleData.slice(0, 3))}`
     }
     comments += '\n'
   })

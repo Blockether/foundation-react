@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
 import tailwindcss from '@tailwindcss/vite'
@@ -8,14 +8,14 @@ import { visualizer } from 'rollup-plugin-visualizer';
 const withReport = ['true', '1', 'yes'].some(val => process.env.BUNDLE_SIZE_VISUALIZAION === val)
 
 const plugins = [
-  tailwindcss(),
-  react(),
+  tailwindcss() as PluginOption,
+  react() as PluginOption,
   dts({
     insertTypesEntry: true,
     include: ['src/**/*'],
     exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'examples/**'],
     rollupTypes: true,
-  })
+  }) as PluginOption
 ]
 
 if (withReport) {

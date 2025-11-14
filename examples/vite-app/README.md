@@ -72,7 +72,7 @@ src/
 ## Key Features
 
 - **SQL Cockpit Component**: Demonstrates the integration of the SQL Cockpit component from @blockether/foundation-react
-- **ThemeProvider**: Proper theming setup for consistent design
+- **FoundationProvider**: Unified provider for theming, logging, and shadow DOM support
 - **Responsive Design**: Built with TailwindCSS for responsive layouts
 - **TypeScript**: Full type safety throughout the application
 
@@ -80,20 +80,20 @@ src/
 
 The main application demonstrates how to:
 
-1. Import and use the `SQLCockpit` and `ThemeProvider` components
+1. Import and use the `SQLCockpit` and `FoundationProvider` components
 2. Set up proper styling with TailwindCSS and shadcn/ui
 3. Structure a React application with Vite
 
 ```tsx
-import { SQLCockpit, ThemeProvider } from '@blockether/foundation-react'
+import { SQLCockpit, FoundationProvider } from '@blockether/foundation-react'
 
 function App() {
   return (
-    <ThemeProvider>
+    <FoundationProvider config={{ defaultTheme: 'light' }}>
       <div className="min-h-screen bg-background">
         <SQLCockpit />
       </div>
-    </ThemeProvider>
+    </FoundationProvider>
   )
 }
 ```

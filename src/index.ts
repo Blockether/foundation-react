@@ -1,6 +1,6 @@
 import './styles/globals.css'
 
-export { ThemeProvider, useTheme } from './components/theme'
+export { FoundationProvider, useTheme, useLogger, useLoggingConfig, useShadowDOM, getGlobalLogger, setGlobalLogger, Logger, LogLevel } from './lib/foundation'
 
 // AI Assistant components
 export { AssistantCockpit } from './components/cockpit/ai/assistant'
@@ -26,8 +26,6 @@ export { formatLLMCompletionPrompt } from './lib/llm-utils'
 // Composer component
 export { Composer } from './components/cockpit/composer'
 
-// Shadow DOM utilities
-export { ShadowDOMProvider, useShadowDOM } from './lib/shadow-dom'
 
 // AI Assistant types
 export type {

@@ -29,10 +29,6 @@ export default defineConfig({
                 {
                     src: 'node_modules/@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js',
                     dest: 'assets'
-                },
-                {
-                    src: 'node_modules/monaco-editor/esm/vs/editor/editor.worker.js',
-                    dest: 'assets'
                 }
             ]
         })
@@ -61,5 +57,5 @@ export default defineConfig({
                 // Let Vite handle chunking automatically
             },
         }
-    },
+    }
 })

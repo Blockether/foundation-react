@@ -1,6 +1,7 @@
 /// <reference types="../../../types/env.d.ts" />
 import { AsyncDuckDB, DuckDBConfig, selectBundle, ConsoleLogger } from '@duckdb/duckdb-wasm'
-import { getPerformanceNow, logElapsedTime } from './perf'
+import { getPerformanceNow } from './perf'
+import { getGlobalLogger } from '../foundation'
 
 let GlobalDatabaseHandle: Promise<AsyncDuckDB> | undefined
 
@@ -15,23 +16,25 @@ export default async function initializeDuckDb(options?: {
   config?: DuckDBConfig
 }): Promise<AsyncDuckDB> {
   const { debug, config } = options || {}
+  const logger = getGlobalLogger()
   const start = getPerformanceNow()
-  debug && logElapsedTime('initializeDuckDb', start)
+  debug && logger.debug('initializeDuckDb')
 
   if (GlobalDatabaseHandle === undefined) {
     GlobalDatabaseHandle = _initializeDuckDb(config)
   }
   const end = getPerformanceNow()
 
-  debug && logElapsedTime('initializeDuckDb finished', start, end)
+  debug && logger.logElapsedTime('initializeDuckDb finished', start, end)
 
   return GlobalDatabaseHandle
 }
 
 
 const duckdbBundles = async () => {
+  const logger = getGlobalLogger()
   try {
-    console.log('[blockether-foundation-react] Loading DuckDB bundles...')
+    logger.info('Loading DuckDB bundles...')
 
     const [duckdb_wasm, mvp_worker, duckdb_wasm_next, eh_worker] =
       await Promise.all([
@@ -41,7 +44,7 @@ const duckdbBundles = async () => {
         import('@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'),
       ])
 
-    console.log('[blockether-foundation-react] DuckDB bundles loaded successfully')
+    logger.info('DuckDB bundles loaded successfully')
 
     return {
       mvp: {
@@ -54,7 +57,7 @@ const duckdbBundles = async () => {
       },
     }
   } catch (error) {
-    console.error('[blockether-foundation-react] Failed to load DuckDB bundles:', error)
+    logger.error('Failed to load DuckDB bundles:', error)
     throw error
   }
 }
@@ -67,8 +70,9 @@ const EH_WORKER = (BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' && BLOCKETHER_F
 const bundleResolver = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' ?
   (
     async () => {
+      const logger = getGlobalLogger()
       try {
-        console.log('[blockether-foundation-react] Standalone DuckDB paths:', {
+        logger.info('Standalone DuckDB paths:', {
           BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION,
           MVP_MODULE,
           MVP_WORKER,
@@ -111,10 +115,10 @@ const bundleResolver = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' ?
           eh: { mainModule: EH_MODULE, mainWorker: EH_WORKER },
         };
 
-        console.log('[blockether-foundation-react] Standalone bundles:', bundles);
+        logger.info('Standalone bundles:', bundles);
         return bundles;
       } catch (error) {
-        console.error('[blockether-foundation-react] Failed to resolve standalone DuckDB bundles:', error)
+        logger.error('Failed to resolve standalone DuckDB bundles:', error)
 
         // Re-throw with more descriptive error message
         if (error instanceof Error) {
@@ -134,9 +138,10 @@ const _initializeDuckDb = async (
   config?: DuckDBConfig
 ): Promise<AsyncDuckDB> => {
   const start = performance.now()
+  const logger = getGlobalLogger()
 
   try {
-    console.log('[blockether-foundation-react] Initializing DuckDB...')
+    logger.info('Initializing DuckDB...')
 
     // Select a bundle based on browser checks
     const bundles = await bundleResolver()
@@ -148,23 +153,23 @@ const _initializeDuckDb = async (
       throw new Error('No suitable DuckDB WASM bundle found for this browser.')
     }
 
-    console.log('[blockether-foundation-react] Selected DuckDB bundle:', {
+    logger.info('Selected DuckDB bundle:', {
       mainModule: bundle.mainModule,
       mainWorker: bundle.mainWorker
     })
 
     // Instantiate the asynchronus version of DuckDB-wasm
     const worker = new Worker(bundle.mainWorker)
-    const logger = new ConsoleLogger()
-    const db = new AsyncDuckDB(logger, worker)
+    const consoleLogger = new ConsoleLogger()
+    const db = new AsyncDuckDB(consoleLogger, worker)
 
-    console.log('[blockether-foundation-react] Instantiating DuckDB database...')
+    logger.info('Instantiating DuckDB database...')
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker)
-    console.log('[blockether-foundation-react] DuckDB database instantiated successfully')
+    logger.info('DuckDB database instantiated successfully')
 
     if (config) {
       if (config.path) {
-        console.log('[blockether-foundation-react] Loading database file:', config.path)
+        logger.info('Loading database file:', config.path)
         const res = await fetch(config.path)
         if (!res.ok) {
           throw new Error(`Failed to fetch database file: ${res.status} ${res.statusText}`)
@@ -175,21 +180,21 @@ const _initializeDuckDb = async (
           config.path = fileNameMatch[0]
         }
         await db.registerFileBuffer(config.path, new Uint8Array(buffer))
-        console.log('[blockether-foundation-react] Database file loaded successfully')
+        logger.info('Database file loaded successfully')
       }
-      console.log('[blockether-foundation-react] Opening database with config...')
+      logger.info('Opening database with config...')
       await db.open(config)
-      console.log('[blockether-foundation-react] Database opened successfully')
+      logger.info('Database opened successfully')
     }
 
-    logElapsedTime('DuckDB initialized', start)
+    logger.logElapsedTime('DuckDB initialized', start)
     if (config) {
-      console.debug(`[blockether-foundation-react] DuckDbConfig: ${JSON.stringify(config, null, 2)}`)
+      logger.debug(`DuckDbConfig: ${JSON.stringify(config, null, 2)}`)
     }
 
     return db
   } catch (error) {
-    console.error('[blockether-foundation-react] Failed to initialize DuckDB:', error)
+    logger.error('Failed to initialize DuckDB:', error)
 
     // Re-throw with more descriptive error message
     if (error instanceof Error) {

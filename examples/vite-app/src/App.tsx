@@ -1,9 +1,9 @@
-import { SQLCockpit, ThemeProvider } from '@blockether/foundation-react'
+import { SQLCockpit, FoundationProvider } from '@blockether/foundation-react'
 import "./App.css";
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light">
+    <FoundationProvider config={{ defaultTheme: 'light' }}>
       <div className="min-h-screen bg-background">
         <header className="border-b bg-card">
           <div className="container mx-auto px-4 py-4">
@@ -51,7 +51,7 @@ function App() {
           </div>
         </main>
       </div>
-    </ThemeProvider>
+    </FoundationProvider>
   )
 }
 
