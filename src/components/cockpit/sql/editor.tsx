@@ -5,17 +5,17 @@
  * formatting, and keyboard shortcuts. It integrates with the SQL Cockpit component.
  */
 
-import React, { useRef, useEffect, useCallback, useState } from 'react'
-import { Editor, OnMount } from '@monaco-editor/react'
-import { cn } from '@/lib/utils'
-import { useTheme, useShadowDOM, useLogger } from '@/lib/foundation'
-import { DataSource } from '@/types/sql'
+import { useLogger, useShadowDOM, useTheme } from '@/lib/foundation'
 import {
-  registerDuckDBCompletionProvider,
   CompletionContext,
+  registerDuckDBCompletionProvider,
 } from '@/lib/sql-completion'
-import { loader } from '@monaco-editor/react'
+import { cn } from '@/lib/utils'
+import { DataSource } from '@/types/sql'
+import { Editor, loader, OnMount } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
+import monacoEditorCss from 'monaco-editor/min/vs/editor/editor.main.css?inline'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 interface SQLEditorProps {
   value: string
@@ -79,9 +79,13 @@ export function SQLEditor({
   React.useEffect(() => {
     if (container) {
       if (container instanceof ShadowRoot) {
-        logger.debug('SQLEditor: ShadowRoot detected, enabling ARIA container support')
+        logger.debug(
+          'SQLEditor: ShadowRoot detected, enabling ARIA container support'
+        )
       } else if ('shadowRoot' in container && container.shadowRoot) {
-        logger.debug('SQLEditor: HTMLElement with ShadowRoot detected, enabling ARIA container support')
+        logger.debug(
+          'SQLEditor: HTMLElement with ShadowRoot detected, enabling ARIA container support'
+        )
       }
     } else {
       logger.debug('SQLEditor: Running in regular DOM mode')
@@ -97,24 +101,24 @@ export function SQLEditor({
 
     self.MonacoEnvironment = {
       getWorkerUrl(workerId: string, label: string) {
-        return import.meta.resolve('/node_modules/monaco-editor/esm/vs/editor/editor.worker.js');
-      }
+        return import.meta.resolve(
+          '/node_modules/monaco-editor/esm/vs/editor/editor.worker.js'
+        )
+      },
     }
-
 
     // Initialize Monaco and mark as loaded
     loader
       .init()
       .then(monaco => {
         // Expose monaco globally for completion provider access
-        ; (window as any).monaco = monaco
+        ;(window as any).monaco = monaco
         logger.info('Monaco initialized and exposed globally')
         setIsMonacoLoaded(true)
       })
       .catch(error => {
         logger.error('Failed to initialize Monaco Editor:', error)
       })
-
   }, [logger])
 
   // Configure editor options
@@ -166,50 +170,29 @@ export function SQLEditor({
       mouseWheelZoom: false,
 
       // ARIA container for shadow DOM accessibility
-      ...(container && container instanceof ShadowRoot && {
-        ariaContainerElement: container as any
-      }),
-      ...(container && 'shadowRoot' in container && container.shadowRoot && {
-        ariaContainerElement: container.shadowRoot as any
-      })
+      ...(container &&
+        container instanceof ShadowRoot && {
+          ariaContainerElement: container as any,
+        }),
+      ...(container &&
+        'shadowRoot' in container &&
+        container.shadowRoot && {
+          ariaContainerElement: container.shadowRoot as any,
+        }),
     }),
     [tabSize, wordWrap, minimap, enableAutoComplete, container]
   )
 
-  // Intercept Monaco's dynamic stylesheet injection for shadow DOM
   useEffect(() => {
     if (!isMonacoLoaded || !(container instanceof ShadowRoot)) return
 
-    logger.debug('Setting up Monaco stylesheet interception for shadow DOM')
+    const documentStyle = document.createElement('style')
+    documentStyle.textContent = monacoEditorCss
+    document.head.appendChild(documentStyle)
 
-    // Find all dynamically injected Monaco stylesheets in document head
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeName === 'STYLE' && node.textContent?.includes('codicon-')) {
-            logger.debug('Copying Monaco icon stylesheet to shadow DOM')
-            // Clone the style element and append to shadow DOM
-            const clonedStyle = (node as HTMLStyleElement).cloneNode(true) as HTMLStyleElement
-            container.appendChild(clonedStyle)
-          }
-        })
-      })
-    })
-
-    // Observe document head for new style elements
-    observer.observe(document.head, { childList: true })
-
-    // Also check for existing Monaco icon stylesheets
-    document.head.querySelectorAll('style').forEach((style) => {
-      if (style.textContent?.includes('codicon-')) {
-        logger.debug('Copying existing Monaco icon stylesheet to shadow DOM')
-        const clonedStyle = style.cloneNode(true) as HTMLStyleElement
-        container.appendChild(clonedStyle)
-      }
-    })
-
-    // Cleanup observer on unmount
-    return () => observer.disconnect()
+    const shadowStyle = document.createElement('style')
+    shadowStyle.textContent = monacoEditorCss
+    container.appendChild(shadowStyle)
   }, [isMonacoLoaded, container, logger])
 
   // Handle editor mount
@@ -232,7 +215,9 @@ export function SQLEditor({
           completionContext
         )
       } else if (enableAutoComplete) {
-        logger.warn('SQL autocomplete disabled - Monaco not properly initialized')
+        logger.warn(
+          'SQL autocomplete disabled - Monaco not properly initialized'
+        )
       }
 
       // Handle focus/blur to control selection behavior
@@ -244,10 +229,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ; (container.style as any).userSelect = 'auto'
-            ; (container.style as any).webkitUserSelect = 'auto'
-            ; (container.style as any).MozUserSelect = 'auto'
-            ; (container.style as any).msUserSelect = 'auto'
+          ;(container.style as any).userSelect = 'auto'
+          ;(container.style as any).webkitUserSelect = 'auto'
+          ;(container.style as any).MozUserSelect = 'auto'
+          ;(container.style as any).msUserSelect = 'auto'
         }
       })
 
@@ -259,10 +244,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ; (container.style as any).userSelect = 'none'
-            ; (container.style as any).webkitUserSelect = 'none'
-            ; (container.style as any).MozUserSelect = 'none'
-            ; (container.style as any).msUserSelect = 'none'
+          ;(container.style as any).userSelect = 'none'
+          ;(container.style as any).webkitUserSelect = 'none'
+          ;(container.style as any).MozUserSelect = 'none'
+          ;(container.style as any).msUserSelect = 'none'
         }
       })
 
@@ -296,7 +281,14 @@ export function SQLEditor({
         onMount(editor)
       }
     },
-    [onExecute, onFormat, onMount, enableFormatting, enableSyntaxHighlighting, logger]
+    [
+      onExecute,
+      onFormat,
+      onMount,
+      enableFormatting,
+      enableSyntaxHighlighting,
+      logger,
+    ]
   )
 
   // Handle window resize
