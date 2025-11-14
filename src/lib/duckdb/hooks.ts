@@ -66,7 +66,7 @@ export const useDuckDBConnection = (
 
   useEffect(() => {
     if (!db) {
-      console.log('No DB instance available, closing connection if any.')
+      console.log('[blockether-foundation-react] No DB instance available, closing connection if any.')
       close()
       return
     }

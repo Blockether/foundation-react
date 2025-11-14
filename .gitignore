@@ -13,6 +13,7 @@ uv.lock
 dist/
 build/
 *.tsbuildinfo
+size-analysis.html
 
 # Environment variables
 .env

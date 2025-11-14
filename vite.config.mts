@@ -3,6 +3,32 @@ import react from '@vitejs/plugin-react'
 import dts from 'vite-plugin-dts'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
+import { visualizer } from 'rollup-plugin-visualizer';
+
+const withReport = ['true', '1', 'yes'].some(val => process.env.BUNDLE_SIZE_VISUALIZAION === val)
+
+const plugins = [
+  tailwindcss(),
+  react(),
+  dts({
+    insertTypesEntry: true,
+    include: ['src/**/*'],
+    exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'examples/**'],
+    rollupTypes: true,
+  })
+]
+
+if (withReport) {
+  plugins.push(
+    visualizer({
+      template: "sunburst", // or sunburst
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      filename: "size-analysis.html", // will be saved in project's root
+    })
+  )
+}
 
 const externals = [
   'react',
@@ -22,16 +48,7 @@ const externals = [
 ]
 
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    react(),
-    dts({
-      insertTypesEntry: true,
-      include: ['src/**/*'],
-      exclude: ['src/**/*.test.*', 'src/**/*.spec.*', 'examples/**'],
-      rollupTypes: true,
-    }),
-  ],
+  plugins: plugins,
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

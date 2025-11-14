@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react'
+import { AsyncDuckDB } from '@duckdb/duckdb-wasm'
 // Lucide React icons
 import { Clock, Search, X, History } from 'lucide-react'
 import { SavedQuery } from '@/types/sql'
@@ -14,6 +15,7 @@ import { cn } from '@/lib/utils'
 
 interface SavedQueriesProps {
   queries: SavedQuery[]
+  db?: AsyncDuckDB | undefined // DuckDB database instance
   onSelect: (query: SavedQuery) => void
   className?: string
 }
@@ -23,6 +25,7 @@ interface SavedQueriesProps {
  */
 export function SavedQueries({
   queries,
+  db,
   onSelect,
   className,
 }: SavedQueriesProps): React.ReactNode {
@@ -31,6 +34,10 @@ export function SavedQueries({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const triggerButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Component is disabled when db is not available
+  const isDbAvailable = !!db
+  const isComponentDisabled = !isDbAvailable
 
   // Filter queries based on search term
   const filteredQueries = React.useMemo(() => {
@@ -107,10 +114,15 @@ export function SavedQueries({
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 p-0 hover:cursor-pointer"
-        aria-label="Query history"
+        disabled={isComponentDisabled}
+        className={cn(
+          'h-8 w-8 p-0',
+          isComponentDisabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'
+        )}
+        aria-label={isComponentDisabled ? 'Query history disabled - no database available' : 'Query history'}
         aria-expanded={isOpen}
         aria-haspopup="menu"
+        title={isComponentDisabled ? 'Query history disabled - no database available' : 'Query history'}
       >
         <History className="h-4 w-4" />
       </Button>
@@ -175,13 +187,16 @@ export function SavedQueries({
                   <button
                     key={query.id}
                     role="menuitem"
+                    disabled={isComponentDisabled}
                     className={cn(
                       'w-full text-left px-3 py-3 text-sm',
-                      'focus:outline-none cursor-pointer',
-                      'hover:bg-muted transition-colors',
+                      'focus:outline-none transition-colors',
+                      isComponentDisabled
+                        ? 'cursor-not-allowed opacity-50'
+                        : 'cursor-pointer hover:bg-muted',
                       index < filteredQueries.length - 1 && 'border-b'
                     )}
-                    onClick={() => handleSelect(query)}
+                    onClick={() => !isComponentDisabled && handleSelect(query)}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">

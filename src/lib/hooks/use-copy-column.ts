@@ -41,7 +41,7 @@ export function useCopyColumn(): UseCopyColumnReturn {
       setCopiedColumn(columnName)
       setTimeout(() => setCopiedColumn(null), 2000)
     } catch (err) {
-      console.error('Failed to copy column:', err)
+      console.error('[blockether-foundation-react] Failed to copy column:', err)
     }
   }
 

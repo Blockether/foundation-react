@@ -84,7 +84,7 @@ export interface SQLCockpitProps extends ComponentPropsWithoutRef<'div'> {
    * List of insights queries for data analysis
    * If provided, these will be available for execution on data sources
    */
-  analyticalQueries?: InsightsQuery[]
+  insightQueries?: InsightsQuery[]
 
   /**
    * Callback function for executing insights queries with data source context
@@ -196,12 +196,12 @@ export interface SQLError {
    * Error type classification
    */
   type:
-    | 'syntax'
-    | 'runtime'
-    | 'connection'
-    | 'memory'
-    | 'permission'
-    | 'timeout'
+  | 'syntax'
+  | 'runtime'
+  | 'connection'
+  | 'memory'
+  | 'permission'
+  | 'timeout'
 
   /**
    * Human-readable error message
@@ -435,7 +435,7 @@ export interface ToolbarAction {
 }
 
 /**
- * Analytical query category type
+ * Insights query category type
  * Supports both predefined categories and custom extensions
  */
 export type InsightsQueryCategory =
@@ -454,7 +454,7 @@ export type InsightsQueryCategory =
   | string // Allow custom categories for extensibility
 
 /**
- * Analytical query interface
+ * Insights query interface
  */
 export interface InsightsQuery {
   /**
@@ -505,7 +505,7 @@ export interface InsightsQuery {
 }
 
 /**
- * Analytical query execution result
+ * Insights query execution result
  */
 export interface InsightsQueryResult {
   /**
@@ -540,7 +540,7 @@ export interface InsightsQueryResult {
     /**
      * Whether this was an insights query (vs manual query)
      */
-    isAnalytical: boolean
+    isInsights: boolean
   }
 }
 
@@ -629,7 +629,7 @@ export interface DataSource {
   /**
    * Available insights queries for this data source
    */
-  analyticalQueries?: InsightsQuery[]
+  insightQueries?: InsightsQuery[]
 
   /**
    * URL to fetch data from (for url type or initial loading)

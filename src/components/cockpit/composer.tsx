@@ -53,7 +53,7 @@ export function Composer({
 }: CockpitComposerProps) {
   // Validate cockpits array
   if (!cockpits || cockpits.length === 0) {
-    console.warn('Composer: No cockpits provided')
+    console.warn('[blockether-foundation-react] Composer: No cockpits provided')
     return null
   }
 

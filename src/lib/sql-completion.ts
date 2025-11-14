@@ -333,7 +333,7 @@ const FUNCTION_SIGNATURES: Record<string, string> = {
 export function createDuckDBCompletionProvider(
   context: CompletionContext
 ): any {
-  console.log('🚀 Creating DuckDB completion provider with context:', {
+  console.log('[blockether-foundation-react] Creating DuckDB completion provider with context:', {
     dataSourcesCount: context.dataSources.length,
     dataSources: context.dataSources.map(ds => ({
       name: ds.name,
@@ -345,18 +345,18 @@ export function createDuckDBCompletionProvider(
   // Store Monaco instance globally for completion provider access
   const monaco = (window as any).monaco
   if (!monaco) {
-    console.warn('⚠️ Monaco not available on window during provider creation')
+    console.warn('[blockether-foundation-react] Monaco not available on window during provider creation')
   }
 
   return {
     provideCompletionItems: async (model: any, position: any) => {
-      console.log('🔍 Providing completions at position:', {
+      console.log('[blockether-foundation-react] Providing completions at position:', {
         line: position.lineNumber,
         column: position.column,
       })
 
       const word = model.getWordUntilPosition(position)
-      console.log('📝 Current word:', word)
+      console.log('[blockether-foundation-react] Current word:', word)
 
       const range = {
         startLineNumber: position.lineNumber,
@@ -369,11 +369,11 @@ export function createDuckDBCompletionProvider(
       let currentMonaco = (window as any).monaco || monaco
 
       if (!currentMonaco) {
-        console.error('❌ No Monaco instance available for completion')
+        console.error('[blockether-foundation-react] No Monaco instance available for completion')
         return { suggestions: [] }
       }
 
-      console.log('✅ Monaco instance found:', !!currentMonaco)
+      console.log('[blockether-foundation-react] Monaco instance found:', !!currentMonaco)
 
       const suggestions: any[] = []
 
@@ -385,8 +385,8 @@ export function createDuckDBCompletionProvider(
         endColumn: position.column,
       })
 
-      console.log('📊 Text before cursor:', textBeforeCursor)
-      console.log('📊 Line content:', model.getLineContent(position.lineNumber))
+      console.log('[blockether-foundation-react] Text before cursor:', textBeforeCursor)
+      console.log('[blockether-foundation-react] Line content:', model.getLineContent(position.lineNumber))
 
       // Check specific patterns for table completion
       const currentLine = model.getLineContent(position.lineNumber)
@@ -400,7 +400,7 @@ export function createDuckDBCompletionProvider(
       const describePartialMatch =
         textBeforeCursorInLine.match(/\bDESCRIBE\s+(\w*)$/i)
 
-      console.log('🎯 Table completion patterns:')
+      console.log('[blockether-foundation-react] Table completion patterns:')
       console.log('  - FROM exact match:', !!fromMatch)
       console.log('  - DESCRIBE exact match:', !!describeMatch)
       console.log('  - FROM partial match:', fromPartialMatch)
@@ -412,7 +412,7 @@ export function createDuckDBCompletionProvider(
         textBeforeCursor,
         currentMonaco
       )
-      console.log('🔤 Keyword suggestions:', keywordSuggestions.length)
+      console.log('[blockether-foundation-react] Keyword suggestions:', keywordSuggestions.length)
       suggestions.push(...keywordSuggestions)
 
       // Add function suggestions
@@ -421,7 +421,7 @@ export function createDuckDBCompletionProvider(
         textBeforeCursor,
         currentMonaco
       )
-      console.log('⚡ Function suggestions:', functionSuggestions.length)
+      console.log('[blockether-foundation-react] Function suggestions:', functionSuggestions.length)
       suggestions.push(...functionSuggestions)
 
       // Add table suggestions from data sources
@@ -431,7 +431,7 @@ export function createDuckDBCompletionProvider(
         context.dataSources,
         currentMonaco
       )
-      console.log('📋 Table suggestions:', tableSuggestions.length)
+      console.log('[blockether-foundation-react] Table suggestions:', tableSuggestions.length)
       suggestions.push(...tableSuggestions)
 
       // Add column suggestions if we're in a context where columns make sense
@@ -439,14 +439,14 @@ export function createDuckDBCompletionProvider(
         textBeforeCursor,
         context.dataSources
       )
-      console.log('🏗️ Table context:', tableContext)
+      console.log('[blockether-foundation-react] Table context:', tableContext)
 
       // Check if we're dealing with qualified column names (table.column)
       const qualifiedColumnMatch = textBeforeCursor.match(
         /([a-zA-Z_][a-zA-Z0-9_]*)\.$/
       )
       if (qualifiedColumnMatch) {
-        console.log('🔎 Qualified column match:', qualifiedColumnMatch[1])
+        console.log('[blockether-foundation-react] Qualified column match:', qualifiedColumnMatch[1])
         const tableName = qualifiedColumnMatch[1]
         const dataSource = context.dataSources.find(
           ds => ds.tableName === tableName
@@ -458,7 +458,7 @@ export function createDuckDBCompletionProvider(
             currentMonaco
           )
           console.log(
-            '🔎 Qualified column suggestions:',
+            '[blockether-foundation-react] Qualified column suggestions:',
             qualifiedColumnSuggestions.length
           )
           suggestions.push(...qualifiedColumnSuggestions)
@@ -471,13 +471,13 @@ export function createDuckDBCompletionProvider(
           context.dataSources,
           currentMonaco
         )
-        console.log('📊 Column suggestions:', columnSuggestions.length)
+        console.log('[blockether-foundation-react] Column suggestions:', columnSuggestions.length)
         suggestions.push(...columnSuggestions)
       }
 
-      console.log('📈 Total suggestions generated:', suggestions.length)
+      console.log('[blockether-foundation-react] Total suggestions generated:', suggestions.length)
       console.log(
-        '💡 Sample suggestions:',
+        '[blockether-foundation-react] Sample suggestions:',
         suggestions.slice(0, 3).map(s => s.label)
       )
 
@@ -845,11 +845,11 @@ export function registerDuckDBCompletionProvider(
   context: CompletionContext
 ): any {
   console.log(
-    '🔧 Registering DuckDB completion provider with monaco:',
+    '[blockether-foundation-react] Registering DuckDB completion provider with monaco:',
     !!monaco
   )
-  console.log('🔧 Monaco languages available:', !!monaco?.languages)
-  console.log('🔧 Context provided:', {
+  console.log('[blockether-foundation-react] Monaco languages available:', !!monaco?.languages)
+  console.log('[blockether-foundation-react] Context provided:', {
     dataSourcesCount: context.dataSources.length,
     hasConnection: !!context.connection,
   })
@@ -857,24 +857,24 @@ export function registerDuckDBCompletionProvider(
   // Validate that monaco and languages are properly initialized
   if (!monaco) {
     console.error(
-      '❌ Monaco instance is required for registerDuckDBCompletionProvider'
+      '[blockether-foundation-react] Monaco instance is required for registerDuckDBCompletionProvider'
     )
     return null
   }
 
   if (!monaco.languages) {
     console.error(
-      '❌ Monaco languages API is not available - Monaco may not be fully initialized'
+      '[blockether-foundation-react] Monaco languages API is not available - Monaco may not be fully initialized'
     )
     return null
   }
 
   if (!monaco.languages.CompletionItemKind) {
-    console.error('❌ Monaco CompletionItemKind not available')
+    console.error('[blockether-foundation-react] Monaco CompletionItemKind not available')
     return null
   }
 
-  console.log('✅ Monaco validation passed, creating provider...')
+  console.log('[blockether-foundation-react] Monaco validation passed, creating provider...')
 
   const provider = createDuckDBCompletionProvider(context)
   const registered = monaco.languages.registerCompletionItemProvider(
@@ -882,7 +882,7 @@ export function registerDuckDBCompletionProvider(
     provider
   )
 
-  console.log('✅ Completion provider registered successfully')
+  console.log('[blockether-foundation-react] Completion provider registered successfully')
   return registered
 }
 

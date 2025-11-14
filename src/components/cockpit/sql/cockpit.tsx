@@ -37,7 +37,7 @@ import {
   SQLError,
 } from '@/types/sql'
 import { Loader2 } from 'lucide-react'
-import React, { useCallback, useReducer, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { SQLEditor } from './editor'
 import { HelpDialog } from './help'
@@ -59,7 +59,7 @@ const TableName = ({ children }: { children: React.ReactNode }) => (
 export function SQLCockpit({
   initialQuery = '',
   savedQueries = [],
-  analyticalQueries,
+  insightQueries,
   initialDataSources,
   autoCleanupRemovedDataSources = false,
   llmCompletionFunction,
@@ -68,7 +68,7 @@ export function SQLCockpit({
     <SQLCockpitWrappedContent
       initialQuery={initialQuery}
       savedQueries={savedQueries}
-      {...(analyticalQueries && { analyticalQueries })}
+      {...(insightQueries && { insightQueries })}
       {...(initialDataSources && { initialDataSources })}
       {...(autoCleanupRemovedDataSources && { autoCleanupRemovedDataSources })}
       {...(llmCompletionFunction && { llmCompletionFunction })}
@@ -79,14 +79,14 @@ export function SQLCockpit({
 const SQLCockpitWrappedContent = ({
   initialQuery,
   savedQueries,
-  analyticalQueries,
+  insightQueries,
   initialDataSources,
   autoCleanupRemovedDataSources,
   llmCompletionFunction,
 }: {
   initialQuery: string
   savedQueries?: SavedQuery[]
-  analyticalQueries?: InsightsQuery[]
+  insightQueries?: InsightsQuery[]
   initialDataSources?: DataSource[]
   autoCleanupRemovedDataSources?: boolean
   llmCompletionFunction?: (params: {
@@ -107,6 +107,9 @@ const SQLCockpitWrappedContent = ({
   const [showAIAssistDialog, setShowAIAssistDialog] = useState(false)
   const [aiUserRequest, setAiUserRequest] = useState('')
   const [isGeneratingQuery, setIsGeneratingQuery] = useState(false)
+
+  // Database status indicator state
+  const [showDbStatusRed, setShowDbStatusRed] = useState(false)
 
   // Keep queryRef in sync with query state
   React.useEffect(() => {
@@ -130,6 +133,32 @@ const SQLCockpitWrappedContent = ({
   // Selection state
   const [selectedColumns, setSelectedColumns] = useState<Set<number>>(new Set())
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set())
+
+  // Database status indicator effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null
+
+    if (db) {
+      // Database is available, clear any existing timer and show green
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
+      setShowDbStatusRed(false)
+    } else {
+      // Database is not available, start a 5-second timer
+      timer = setTimeout(() => {
+        setShowDbStatusRed(true)
+      }, 5000)
+    }
+
+    // Cleanup function
+    return () => {
+      if (timer) {
+        clearTimeout(timer)
+      }
+    }
+  }, [db])
 
   // Data sources state
   const [dataSources, setDataSources] = useState<DataSource[]>(() => {
@@ -157,8 +186,7 @@ const SQLCockpitWrappedContent = ({
     forceUpdate() // Trigger re-render to show updated state
   }
 
-  // Analytical query state
-  const [isInsightsQuery, setIsInsightsQuery] = useState(false)
+  // Insights query state
   const [currentInsightsQuery, setCurrentInsightsQuery] =
     useState<InsightsQuery | null>(null)
 
@@ -181,8 +209,7 @@ const SQLCockpitWrappedContent = ({
     const startTime = Date.now()
     setQueryState(DuckDBQueryState.QueryRunning)
     setQueryError(null)
-    setIsInsightsQuery(false)
-    setCurrentInsightsQuery(null)
+        setCurrentInsightsQuery(null)
 
     // Clear format error when running a new query
     clearFormatError()
@@ -208,7 +235,7 @@ const SQLCockpitWrappedContent = ({
       await connection.cancelSent()
       setQueryState(DuckDBQueryState.QueryIdle)
     } catch (err) {
-      console.error('Failed to cancel query:', err)
+      console.error('[blockether-foundation-react] Failed to cancel query:', err)
       setQueryState(DuckDBQueryState.QueryIdle)
     }
   }, [connection])
@@ -249,10 +276,10 @@ const SQLCockpitWrappedContent = ({
     setIsGeneratingQuery(true)
 
     try {
-      console.log('🤖 AI Assistant - Starting data source preparation')
-      console.log('📊 Available data sources:', dataSources.length)
+      console.log('[blockether-foundation-react] AI Assistant - Starting data source preparation')
+      console.log('[blockether-foundation-react] Available data sources:', dataSources.length)
       console.log(
-        '📋 Data sources details:',
+        '[blockether-foundation-react] Data sources details:',
         dataSources.map(ds => ({
           name: ds.name,
           tableName: ds.tableName,
@@ -266,7 +293,7 @@ const SQLCockpitWrappedContent = ({
         dataSources
           .filter(ds => {
             console.log(
-              `🔍 Checking data source: ${ds.name}, status: ${ds.loadingStatus}`
+              `[blockether-foundation-react] Checking data source: ${ds.name}, status: ${ds.loadingStatus}`
             )
             return ds.loadingStatus === 'loaded'
           })
@@ -283,23 +310,23 @@ const SQLCockpitWrappedContent = ({
                 throw new Error('No connection available')
               }
 
-              console.log(`🔍 Fetching sample data for table: ${ds.tableName}`)
+              console.log(`[blockether-foundation-react] Fetching sample data for table: ${ds.tableName}`)
               const sampleQuery = `SELECT * FROM "${ds.tableName}" LIMIT 5`
-              console.log(`📝 Sample query: ${sampleQuery}`)
+              console.log(`[blockether-foundation-react] Sample query: ${sampleQuery}`)
 
               const sampleResult = await transformDuckDBResult(
                 connection,
                 sampleQuery,
                 Date.now()
               )
-              console.log(`📊 Sample result:`, sampleResult)
+              console.log(`[blockether-foundation-react] Sample result:`, sampleResult)
 
               if (sampleResult.data && sampleResult.data.length > 0) {
                 dsInfo.sampleData = sampleResult.data
               }
             } catch (error) {
               console.warn(
-                `Failed to fetch sample data for ${ds.tableName}:`,
+                `[blockether-foundation-react] Failed to fetch sample data for ${ds.tableName}:`,
                 error
               )
             }
@@ -309,7 +336,7 @@ const SQLCockpitWrappedContent = ({
       )
 
       console.log(
-        '📈 Prepared data sources for LLM:',
+        '[blockether-foundation-react] Prepared data sources for LLM:',
         dataSourcesInfo.map(ds => ({
           name: ds.name,
           tableName: ds.tableName,
@@ -336,7 +363,7 @@ const SQLCockpitWrappedContent = ({
 
       toast.success('AI-generated query inserted successfully')
     } catch (error) {
-      console.error('Failed to generate AI query:', error)
+      console.error('[blockether-foundation-react] Failed to generate AI query:', error)
       toast.error(
         <span>
           Failed to generate query:{' '}
@@ -372,7 +399,7 @@ const SQLCockpitWrappedContent = ({
           nullable: col.null === 'YES',
         }))
       } catch (error) {
-        console.warn('Failed to get table schema:', error)
+        console.warn('[blockether-foundation-react] Failed to get table schema:', error)
         return []
       }
     },
@@ -383,7 +410,7 @@ const SQLCockpitWrappedContent = ({
   const handleImportFile = useCallback(
     async (file: File, existingDataSourceId?: string): Promise<void> => {
       if (!connection) {
-        console.error('No database connection available')
+        console.error('[blockether-foundation-react] No database connection available')
         return
       }
 
@@ -413,24 +440,24 @@ const SQLCockpitWrappedContent = ({
         // Determine file type and create appropriate SQL
         let createTableSQL = ''
         if (file.name.endsWith('.csv')) {
-          console.log(`[Import] Importing CSV file: ${file.name}`)
-          console.log(`[Import] Table name: ${tableName}`)
+          console.log(`[blockether-foundation-react] Importing CSV file: ${file.name}`)
+          console.log(`[blockether-foundation-react] Table name: ${tableName}`)
 
           // First, let's check what DuckDB sees in the CSV
           try {
             // Use sample_size=-1 to force DuckDB to scan entire file for type detection
             // Combined with all_varchar=true to prevent type inference issues
             const previewQuery = `SELECT * FROM read_csv('${file.name}', header=true, delim=',', quote='"', sample_size=-1, all_varchar=true) LIMIT 3`
-            console.log(`[Import] Preview query: ${previewQuery}`)
+            console.log(`[blockether-foundation-react] Preview query: ${previewQuery}`)
             const preview = await connection.query(previewQuery)
             const previewData = preview.toArray()
-            console.log(`[Import] CSV Preview (first 3 rows):`, previewData)
+            console.log(`[blockether-foundation-react] CSV Preview (first 3 rows):`, previewData)
             console.log(
-              `[Import] Detected columns:`,
+              `[blockether-foundation-react] Detected columns:`,
               preview.schema.fields.map((f: any) => f.name)
             )
           } catch (error) {
-            console.error(`[Import] Failed to preview CSV:`, error)
+            console.error(`[blockether-foundation-react] Failed to preview CSV:`, error)
           }
 
           // Use explicit parameters: sample_size=-1 ensures full file scan, all_varchar prevents type confusion
@@ -447,7 +474,7 @@ const SQLCockpitWrappedContent = ({
         }
 
         // Execute the CREATE TABLE query
-        console.log(`[Import] Executing CREATE TABLE: ${createTableSQL}`)
+        console.log(`[blockether-foundation-react] Executing CREATE TABLE: ${createTableSQL}`)
         await connection.query(createTableSQL)
 
         // Verify table was created correctly
@@ -455,13 +482,13 @@ const SQLCockpitWrappedContent = ({
           const verifyQuery = `SELECT * FROM ${tableName} LIMIT 3`
           const verifyResult = await connection.query(verifyQuery)
           const verifyData = verifyResult.toArray()
-          console.log(`[Import] Table created. First 3 rows:`, verifyData)
+          console.log(`[blockether-foundation-react] Table created. First 3 rows:`, verifyData)
           console.log(
-            `[Import] Table columns:`,
+            `[blockether-foundation-react] Table columns:`,
             verifyResult.schema.fields.map((f: any) => f.name)
           )
           console.log(
-            `[Import] Total rows in table:`,
+            `[blockether-foundation-react] Total rows in table:`,
             (
               await connection.query(
                 `SELECT COUNT(*) as count FROM ${tableName}`
@@ -469,7 +496,7 @@ const SQLCockpitWrappedContent = ({
             ).toArray()[0].count
           )
         } catch (error) {
-          console.error(`[Import] Failed to verify table:`, error)
+          console.error(`[blockether-foundation-react] Failed to verify table:`, error)
         }
 
         // Get table schema using DuckDB DESCRIBE
@@ -513,7 +540,7 @@ const SQLCockpitWrappedContent = ({
           setDataSources(prev => [...prev, newDataSource])
         }
       } catch (error) {
-        console.error('Failed to import file:', error)
+        console.error('[blockether-foundation-react] Failed to import file:', error)
         throw error
       }
     },
@@ -541,8 +568,7 @@ const SQLCockpitWrappedContent = ({
       const startTime = Date.now()
       setQueryState(DuckDBQueryState.QueryRunning)
       setQueryError(null)
-      setIsInsightsQuery(true)
-      setCurrentInsightsQuery(insightsQuery)
+            setCurrentInsightsQuery(insightsQuery)
 
       // Clear format error when running insights query
       clearFormatError()
@@ -579,7 +605,7 @@ const SQLCockpitWrappedContent = ({
         setQueryState(DuckDBQueryState.QueryError)
         toast.error(
           <span>
-            Analytical query on table{' '}
+            Insights query on table{' '}
             <TableName>{dataSource?.tableName || 'unknown'}</TableName> failed:{' '}
             {err instanceof Error ? err.message : 'Unknown error'}
           </span>
@@ -592,7 +618,7 @@ const SQLCockpitWrappedContent = ({
   // Load initial data sources when connection is ready (handles dynamic updates)
   React.useEffect(() => {
     if (!connection || !db) {
-      console.log('[DataSourceLoader] Waiting for DuckDB connection...', {
+      console.log('[blockether-foundation-react] Waiting for DuckDB connection...', {
         connection: !!connection,
         db: !!db,
       })
@@ -600,7 +626,7 @@ const SQLCockpitWrappedContent = ({
     }
 
     if (!initialDataSources || initialDataSources.length === 0) {
-      console.log('[DataSourceLoader] No initial data sources provided')
+      console.log('[blockether-foundation-react] No initial data sources provided')
       return
     }
 
@@ -670,7 +696,7 @@ const SQLCockpitWrappedContent = ({
 
         try {
           console.log(
-            `[DataSourceLoader] Processing: ${dataSource.name} (${dataSource.tableName})`
+            `[blockether-foundation-react] Processing: ${dataSource.name} (${dataSource.tableName})`
           )
 
           // Load from raw data first (highest priority)
@@ -690,7 +716,7 @@ const SQLCockpitWrappedContent = ({
                 const uniqueDuplicates = [...new Set(duplicates)]
 
                 console.warn(
-                  `[DataSourceLoader] Duplicate columns detected in columnOrder for ${dataSource.name}: ${uniqueDuplicates.join(', ')}`
+                  `[blockether-foundation-react] Duplicate columns detected in columnOrder for ${dataSource.name}: ${uniqueDuplicates.join(', ')}`
                 )
 
                 toast.error(
@@ -704,7 +730,7 @@ const SQLCockpitWrappedContent = ({
                 // Remove duplicates - keep first occurrence only
                 columns = [...columnSet]
                 console.log(
-                  `[DataSourceLoader] Removed duplicates, using: ${columns.join(', ')}`
+                  `[blockether-foundation-react] Removed duplicates, using: ${columns.join(', ')}`
                 )
               }
             }
@@ -750,31 +776,31 @@ const SQLCockpitWrappedContent = ({
 
             // Debug: Log the actual CSV content being generated
             console.log(
-              `[DataSourceLoader] Generated CSV headers: "${csvHeaders}"`
+              `[blockether-foundation-react] Generated CSV headers: "${csvHeaders}"`
             )
             console.log(
-              `[DataSourceLoader] Number of header columns: ${columns.length}`
+              `[blockether-foundation-react] Number of header columns: ${columns.length}`
             )
             console.log(
-              `[DataSourceLoader] Column order source: ${dataSource.columnOrder ? 'explicit columnOrder' : 'Object.keys()'}`
+              `[blockether-foundation-react] Column order source: ${dataSource.columnOrder ? 'explicit columnOrder' : 'Object.keys()'}`
             )
-            console.log(`[DataSourceLoader] First CSV row: "${csvRows[0]}"`)
+            console.log(`[blockether-foundation-react] First CSV row: "${csvRows[0]}"`)
             console.log(
-              `[DataSourceLoader] Number of values in first row: ${csvRows[0]?.split(',').length}`
-            )
-            console.log(
-              `[DataSourceLoader] Sample object keys: ${Object.keys(dataSource.data[0]).join(', ')}`
+              `[blockether-foundation-react] Number of values in first row: ${csvRows[0]?.split(',').length}`
             )
             console.log(
-              `[DataSourceLoader] Sample skills value:`,
+              `[blockether-foundation-react] Sample object keys: ${Object.keys(dataSource.data[0]).join(', ')}`
+            )
+            console.log(
+              `[blockether-foundation-react] Sample skills value:`,
               dataSource.data[0]?.skills
             )
             console.log(
-              `[DataSourceLoader] Sample skills type:`,
+              `[blockether-foundation-react] Sample skills type:`,
               typeof dataSource.data[0]?.skills
             )
             console.log(
-              `[DataSourceLoader] Full first object:`,
+              `[blockether-foundation-react] Full first object:`,
               dataSource.data[0]
             )
 
@@ -792,14 +818,14 @@ const SQLCockpitWrappedContent = ({
               .toArray()
               .map((row: any) => row.name)
             console.log(
-              `[DataSourceLoader] Table ${dataSource.tableName} created with columns:`,
+              `[blockether-foundation-react] Table ${dataSource.tableName} created with columns:`,
               actualColumns
             )
 
             // If columns are still generic, recreate with explicit definitions
             if (actualColumns.some(col => col.startsWith('column'))) {
               console.log(
-                `[DataSourceLoader] Detected generic column names, recreating table with explicit definitions...`
+                `[blockether-foundation-react] Detected generic column names, recreating table with explicit definitions...`
               )
 
               // Drop the table and recreate with explicit column definitions
@@ -820,7 +846,7 @@ const SQLCockpitWrappedContent = ({
               )
 
               console.log(
-                `[DataSourceLoader] Recreated table with explicit column definitions`
+                `[blockether-foundation-react] Recreated table with explicit column definitions`
               )
             }
 
@@ -828,7 +854,7 @@ const SQLCockpitWrappedContent = ({
             await db.dropFile(tempFileName)
 
             console.log(
-              `[DataSourceLoader] Created table ${dataSource.tableName} from raw data (${dataSource.data.length} rows)`
+              `[blockether-foundation-react] Created table ${dataSource.tableName} from raw data (${dataSource.data.length} rows)`
             )
 
             // Update schema information
@@ -874,7 +900,7 @@ const SQLCockpitWrappedContent = ({
                 `SELECT 1 FROM ${dataSource.tableName} LIMIT 1`
               )
               console.log(
-                `[DataSourceLoader] Table ${dataSource.tableName} already exists, skipping load but marking as loaded`
+                `[blockether-foundation-react] Table ${dataSource.tableName} already exists, skipping load but marking as loaded`
               )
               loadedDataSourceIdsRef.current.add(dataSource.id)
               setDataSources(prev =>
@@ -888,16 +914,16 @@ const SQLCockpitWrappedContent = ({
             } catch {
               // Table doesn't exist, but we can't load it without URL, so mark as failed
               console.log(
-                `[DataSourceLoader] Table ${dataSource.tableName} does not exist and no URL provided`
+                `[blockether-foundation-react] Table ${dataSource.tableName} does not exist and no URL provided`
               )
               setDataSources(prev =>
                 prev.map(ds =>
                   ds.id === dataSource.id
                     ? {
-                        ...ds,
-                        loadingStatus: 'failed' as const,
-                        loadingError: `Table ${dataSource.tableName} does not exist and no URL provided to load it`,
-                      }
+                      ...ds,
+                      loadingStatus: 'failed' as const,
+                      loadingError: `Table ${dataSource.tableName} does not exist and no URL provided to load it`,
+                    }
                     : ds
                 )
               )
@@ -908,7 +934,7 @@ const SQLCockpitWrappedContent = ({
           // Load from URL
           if (dataSource.url) {
             console.log(
-              `[DataSourceLoader] Fetching from URL: ${dataSource.url}`
+              `[blockether-foundation-react] Fetching from URL: ${dataSource.url}`
             )
 
             // Check if table already exists before attempting to create
@@ -917,7 +943,7 @@ const SQLCockpitWrappedContent = ({
                 `SELECT 1 FROM ${dataSource.tableName} LIMIT 1`
               )
               console.log(
-                `[DataSourceLoader] Table ${dataSource.tableName} already exists, skipping URL load but marking as loaded`
+                `[blockether-foundation-react] Table ${dataSource.tableName} already exists, skipping URL load but marking as loaded`
               )
               loadedDataSourceIdsRef.current.add(dataSource.id)
               setDataSources(prev =>
@@ -931,7 +957,7 @@ const SQLCockpitWrappedContent = ({
             } catch {
               // Table doesn't exist, proceed with URL load
               console.log(
-                `[DataSourceLoader] Table ${dataSource.tableName} doesn't exist yet, loading from URL`
+                `[blockether-foundation-react] Table ${dataSource.tableName} doesn't exist yet, loading from URL`
               )
             }
             const response = await fetch(dataSource.url)
@@ -949,7 +975,7 @@ const SQLCockpitWrappedContent = ({
             })
 
             console.log(
-              `[DataSourceLoader] Importing file: ${fileName} (${blob.size} bytes)`
+              `[blockether-foundation-react] Importing file: ${fileName} (${blob.size} bytes)`
             )
             // Pass the existing datasource ID to update it instead of creating a new one
             await handleImportFile(file, dataSource.id)
@@ -973,7 +999,7 @@ const SQLCockpitWrappedContent = ({
             //   </span>
             // )
             console.log(
-              `[DataSourceLoader] Successfully loaded: ${dataSource.name}`
+              `[blockether-foundation-react] Successfully loaded: ${dataSource.name}`
             )
             continue
           }
@@ -1005,7 +1031,7 @@ const SQLCockpitWrappedContent = ({
           }
         } catch (error) {
           console.error(
-            `[DataSourceLoader] Failed to load data source ${dataSource.name}:`,
+            `[blockether-foundation-react] Failed to load data source ${dataSource.name}:`,
             error
           )
 
@@ -1019,10 +1045,10 @@ const SQLCockpitWrappedContent = ({
             prev.map(ds =>
               ds.id === dataSource.id
                 ? {
-                    ...ds,
-                    loadingStatus: 'failed' as const,
-                    loadingError: errorMessage,
-                  }
+                  ...ds,
+                  loadingStatus: 'failed' as const,
+                  loadingError: errorMessage,
+                }
                 : ds
             )
           )
@@ -1062,7 +1088,7 @@ const SQLCockpitWrappedContent = ({
         return
       }
 
-      console.log(`Cleaning up ${removedIds.length} removed data sources...`)
+      console.log(`[blockether-foundation-react] Cleaning up ${removedIds.length} removed data sources...`)
 
       for (const removedId of removedIds) {
         try {
@@ -1072,7 +1098,7 @@ const SQLCockpitWrappedContent = ({
             await connection.query(
               `DROP TABLE IF EXISTS ${dataSource.tableName}`
             )
-            console.log(`Dropped table: ${dataSource.tableName}`)
+            console.log(`[blockether-foundation-react] Dropped table: ${dataSource.tableName}`)
             toast.success(
               <span>
                 Removed table <TableName>{dataSource.tableName}</TableName>
@@ -1086,7 +1112,7 @@ const SQLCockpitWrappedContent = ({
           // Remove from loaded IDs
           loadedDataSourceIdsRef.current.delete(removedId)
         } catch (error) {
-          console.error(`Failed to cleanup data source ${removedId}:`, error)
+          console.error(`[blockether-foundation-react] Failed to cleanup data source ${removedId}:`, error)
         }
       }
     }
@@ -1140,7 +1166,7 @@ const SQLCockpitWrappedContent = ({
         try {
           await handleImportFile(file)
         } catch (error) {
-          console.error(`Failed to import file ${file.name}:`, error)
+          console.error(`[blockether-foundation-react] Failed to import file ${file.name}:`, error)
         }
       }
     },
@@ -1233,7 +1259,7 @@ const SQLCockpitWrappedContent = ({
 
         setShowSaveDialog(false)
       } catch (error) {
-        console.error('Failed to save results:', error)
+        console.error('[blockether-foundation-react] Failed to save results:', error)
       }
     },
     [queryResult, selectedColumns, selectedRows]
@@ -1264,6 +1290,8 @@ const SQLCockpitWrappedContent = ({
           onRunQuery={handleRunQuery}
           onCancelQuery={handleCancelQuery}
           onFormatQuery={handleFormatQuery}
+          db={db}
+          showDbStatusRed={showDbStatusRed}
           queryState={queryState}
           queryResult={queryResult}
           queryError={queryError}
@@ -1279,8 +1307,7 @@ const SQLCockpitWrappedContent = ({
           onImportFile={handleImportFile}
           onSelectDataSource={handleSelectDataSource}
           onExecuteInsightsQuery={handleExecuteInsightsQuery}
-          analyticalQueries={analyticalQueries || []}
-          isInsightsQuery={isInsightsQuery}
+          insightQueries={insightQueries || []}
           currentInsightsQuery={currentInsightsQuery}
         />
 
@@ -1345,14 +1372,14 @@ const SQLCockpitWrappedContent = ({
               />
               {dataSources.filter(ds => ds.loadingStatus === 'loaded').length >
                 0 && (
-                <div className="mt-3 text-sm text-muted-foreground">
-                  <span className="font-medium">Available data sources:</span>{' '}
-                  {dataSources
-                    .filter(ds => ds.loadingStatus === 'loaded')
-                    .map(ds => ds.tableName)
-                    .join(', ')}
-                </div>
-              )}
+                  <div className="mt-3 text-sm text-muted-foreground">
+                    <span className="font-medium">Available data sources:</span>{' '}
+                    {dataSources
+                      .filter(ds => ds.loadingStatus === 'loaded')
+                      .map(ds => ds.tableName)
+                      .join(', ')}
+                  </div>
+                )}
             </div>
             <DialogFooter>
               <Button
@@ -1442,140 +1469,3 @@ const SQLCockpitWrappedContent = ({
   )
 }
 
-export const formatLLMCompletionPrompt = async (params: {
-  userRequest: string
-  dataSources: Array<{
-    name: string
-    tableName: string
-    description?: string
-    schema?: Array<{
-      name: string
-      type: string
-      nullable: boolean
-    }>
-    sampleData?: Array<Record<string, any>>
-  }>
-  currentQuery: string
-}): Promise<string> => {
-  let comments = `-- Supported SQL Dialect: DuckDB SQL (https://duckdb.org/docs/stable/sql/introduction)\n--\n-- User Request: ${params.userRequest.trim()}\n--\n-- Available Data Sources:\n`
-
-  params.dataSources.forEach((ds: any) => {
-    comments += `--\n`
-    comments += `-- # SQL Table Name: ${ds.tableName}\n`
-    comments += `--- Data Source: ${ds.name}\n`
-    if (ds.description) {
-      comments += `--- Description: ${ds.description}\n`
-    }
-
-    if (ds.schema && ds.schema.length > 0) {
-      comments += `--- Schema (${ds.schema.length} columns):\n`
-
-      // Create formatted schema table using console.table output format
-      const schemaTable = ds.schema.map((col: any) => ({
-        'Column Name': col.name,
-        Type: col.type,
-        Nullable: col.nullable !== false ? 'YES' : 'NO',
-      }))
-
-      // Convert the table data to formatted string
-      const columnWidths = {
-        name: Math.max(
-          12,
-          ...schemaTable.map((row: any) => row['Column Name'].length)
-        ),
-        type: Math.max(
-          20,
-          ...schemaTable.map((row: any) => row['Type'].length)
-        ),
-        nullable: Math.max(
-          8,
-          ...schemaTable.map((row: any) => row['Nullable'].length)
-        ),
-      }
-
-      // Create table header and borders with proper spacing
-      const nameHeader = 'Column Name'.padEnd(columnWidths.name, ' ')
-      const typeHeader = 'Type'.padEnd(columnWidths.type, ' ')
-      const nullableHeader = 'Nullable'.padEnd(columnWidths.nullable, ' ')
-      const header = `${nameHeader} │ ${typeHeader} │ ${nullableHeader}`
-
-      const nameBorder = '─'.repeat(columnWidths.name)
-      const typeBorder = '─'.repeat(columnWidths.type)
-      const nullableBorder = '─'.repeat(columnWidths.nullable)
-      const border = `${nameBorder}─┼─${typeBorder}─┼─${nullableBorder}`
-      const topBorder = `${nameBorder}─┬─${typeBorder}─┬─${nullableBorder}`
-      const bottomBorder = `${nameBorder}─┴─${typeBorder}─┴─${nullableBorder}`
-
-      comments += `-- ┌─${topBorder}─┐\n`
-      comments += `-- │ ${header} │\n`
-      comments += `-- ├─${border}─┤\n`
-
-      schemaTable.forEach((row: any) => {
-        const nameCol = row['Column Name'].padEnd(columnWidths.name, ' ')
-        const typeCol = row['Type'].padEnd(columnWidths.type, ' ')
-        const nullableCol = row['Nullable'].padEnd(columnWidths.nullable, ' ')
-        comments += `-- │ ${nameCol} │ ${typeCol} │ ${nullableCol} │\n`
-      })
-
-      comments += `-- └─${bottomBorder}─┘\n`
-
-      // Add sample data if available
-      if (ds.sampleData && ds.sampleData.length > 0) {
-        comments += `-- # Sample Data (${ds.sampleData.length} rows, showing first ${Math.min(5, ds.sampleData.length)}):\n`
-
-        const sampleData = ds.sampleData.slice(0, 5)
-        if (sampleData.length > 0) {
-          const columns = Object.keys(sampleData[0])
-
-          // Calculate column widths for sample data
-          const sampleColWidths: Record<string, number> = {}
-          columns.forEach(col => {
-            sampleColWidths[col] = Math.max(
-              col.length,
-              ...sampleData.map((row: any) => String(row[col] || '').length)
-            )
-          })
-
-          // Create sample data table
-          const sampleHeader = columns
-            .map(col => col.padEnd(sampleColWidths[col], ' '))
-            .join(' │ ')
-
-          const sampleBorder = columns
-            .map(col => '─'.repeat(sampleColWidths[col]))
-            .join('─┼─')
-
-          const sampleTopBorder = columns
-            .map(col => '─'.repeat(sampleColWidths[col]))
-            .join('─┬─')
-
-          const sampleBottomBorder = columns
-            .map(col => '─'.repeat(sampleColWidths[col]))
-            .join('─┴─')
-
-          comments += `-- ┌─${sampleTopBorder}─┐\n`
-          comments += `-- │ ${sampleHeader} │\n`
-          comments += `-- ├─${sampleBorder}─┤\n`
-
-          sampleData.forEach((row: any) => {
-            const dataRow = columns
-              .map(col => {
-                const value = String(row[col] || '')
-                return value.padEnd(sampleColWidths[col], ' ')
-              })
-              .join(' │ ')
-            comments += `-- │ ${dataRow} │\n`
-          })
-
-          comments += `-- └─${sampleBottomBorder}─┘\n`
-        }
-      } else {
-        comments += `-- # Sample Data: Not available\n`
-      }
-    } else {
-      comments += `-- # Schema: Not available\n`
-    }
-  })
-
-  return comments
-}

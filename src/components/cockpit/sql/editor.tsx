@@ -110,11 +110,11 @@ export function SQLEditor({
       .then(monaco => {
         // Expose monaco globally for completion provider access
         ;(window as any).monaco = monaco
-        console.log('✅ Monaco initialized and exposed globally')
+        console.log('[blockether-foundation-react] Monaco initialized and exposed globally')
         setIsMonacoLoaded(true)
       })
       .catch(error => {
-        console.error('Failed to initialize Monaco Editor:', error)
+        console.error('[blockether-foundation-react] Failed to initialize Monaco Editor:', error)
       })
   }, [])
 
@@ -190,7 +190,7 @@ export function SQLEditor({
         )
       } else if (enableAutoComplete) {
         console.warn(
-          'SQL autocomplete disabled - Monaco not properly initialized'
+          '[blockether-foundation-react] SQL autocomplete disabled - Monaco not properly initialized'
         )
       }
 

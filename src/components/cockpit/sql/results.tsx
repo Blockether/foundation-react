@@ -63,7 +63,7 @@ interface ResultsPanelProps {
     selectedRows: Set<number>
   ) => void
 
-  // Analytical query - if provided, shows chart visualization
+  // Insights query - if provided, shows chart visualization
   insightsQuery?: InsightsQuery | null
 }
 
@@ -669,7 +669,7 @@ export function ResultsPanel({
       setShowCopyButton(false)
       toast.success('Selection copied to clipboard')
     } catch (err) {
-      console.error('Failed to copy selection:', err)
+      console.error('[blockether-foundation-react] Failed to copy selection:', err)
       toast.error('Failed to copy selection')
     }
   }
@@ -688,7 +688,7 @@ export function ResultsPanel({
         `${selectedColumns.size} column${selectedColumns.size > 1 ? 's' : ''} copied as CSV`
       )
     } catch (err) {
-      console.error('Failed to copy columns:', err)
+      console.error('[blockether-foundation-react] Failed to copy columns:', err)
       toast.error('Failed to copy columns')
     }
   }
@@ -706,7 +706,7 @@ export function ResultsPanel({
         `${selectedColumns.size} column${selectedColumns.size > 1 ? 's' : ''} copied as JSON`
       )
     } catch (err) {
-      console.error('Failed to copy columns:', err)
+      console.error('[blockether-foundation-react] Failed to copy columns:', err)
       toast.error('Failed to copy columns')
     }
   }
@@ -724,7 +724,7 @@ export function ResultsPanel({
         `${selectedRows.size} row${selectedRows.size > 1 ? 's' : ''} copied as CSV`
       )
     } catch (err) {
-      console.error('Failed to copy rows:', err)
+      console.error('[blockether-foundation-react] Failed to copy rows:', err)
       toast.error('Failed to copy rows')
     }
   }
@@ -742,7 +742,7 @@ export function ResultsPanel({
         `${selectedRows.size} row${selectedRows.size > 1 ? 's' : ''} copied as JSON`
       )
     } catch (err) {
-      console.error('Failed to copy rows:', err)
+      console.error('[blockether-foundation-react] Failed to copy rows:', err)
       toast.error('Failed to copy rows')
     }
   }
@@ -757,7 +757,7 @@ export function ResultsPanel({
       await navigator.clipboard.writeText(csvContent)
       toast.success(`Full dataset (${result.data.length} rows) copied as CSV`)
     } catch (err) {
-      console.error('Failed to save CSV:', err)
+      console.error('[blockether-foundation-react] Failed to save CSV:', err)
       toast.error('Failed to save CSV')
     }
   }
@@ -857,7 +857,7 @@ export function ResultsPanel({
       await navigator.clipboard.writeText(jsonContent)
       toast.success(`Full dataset (${result.data.length} rows) copied as JSON`)
     } catch (err) {
-      console.error('Failed to save JSON:', err)
+      console.error('[blockether-foundation-react] Failed to save JSON:', err)
       toast.error('Failed to save JSON')
     }
   }
@@ -1412,7 +1412,7 @@ export function ResultsPanel({
                           ? 'bg-primary/10'
                           : 'hover:bg-muted/50',
                         selectedColumns.has(index) &&
-                          'bg-primary/20 ring-2 ring-primary/50',
+                        'bg-primary/20 ring-2 ring-primary/50',
                         selectionMode === 'column' && 'hover:bg-primary/30'
                       )}
                       style={{ minWidth: `${MIN_COLUMN_WIDTH}px` }}
@@ -1540,7 +1540,7 @@ export function ResultsPanel({
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0 transition-all duration-200 ease-in-out">
-          {/* Analytical query toggle button */}
+          {/* Insights query toggle button */}
           {insightsQuery && result && result.data.length > 0 && (
             <div className="flex items-center bg-muted/50 border rounded-sm">
               <Button

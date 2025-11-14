@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DuckDB-WASM support for browser-based SQL execution
 - Professional toolbar with syntax highlighting and formatted results
 - Data source management (CSV, Parquet, JSON support)
-- Analytical query capabilities
+- Insights query capabilities
 - Storybook documentation and component examples
 - TypeScript definitions with strict mode enabled
 - TailwindCSS styling with shadcn/ui components

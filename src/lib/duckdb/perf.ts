@@ -36,7 +36,7 @@ export const logElapsedTime = (
   start: number,
   end: number | undefined = undefined
 ) => {
-  console.debug(formatElapsedTime(label, start, end))
+  console.debug(`[blockether-foundation-react] ${formatElapsedTime(label, start, end)}`)
 }
 
 export const getPerformanceNow = (): number => {

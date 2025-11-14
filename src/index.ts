@@ -20,6 +20,9 @@ export { useCopyColumn, usePagination } from './lib/hooks'
 // DuckDB integration
 export * from './lib/duckdb'
 
+// LLM utilities
+export { formatLLMCompletionPrompt } from './lib/llm-utils'
+
 // Composer component
 export { Composer } from './components/cockpit/composer'
 

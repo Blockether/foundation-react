@@ -2,9 +2,9 @@
 // These stories are focused on SQL Cockpit functionality
 
 import {
-  formatLLMCompletionPrompt,
   SQLCockpit,
 } from '@/components/cockpit/sql/cockpit'
+import { formatLLMCompletionPrompt } from '@/index'
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
@@ -57,7 +57,7 @@ const mockSavedQueries = [
 ]
 
 // Mock insights queries
-const mockAnalyticalQueries: InsightsQuery[] = [
+const mockinsightQueries: InsightsQuery[] = [
   {
     id: 'summary-stats',
     name: 'Summary Statistics',
@@ -350,7 +350,7 @@ export const SQLAnalyticsAndCharts: Story = {
             '-- Real DuckDB data loaded from CSV files!\n-- Click the database icon to explore insights queries.\n-- Charts will be automatically generated from query results.\n\nSELECT * FROM users LIMIT 100;'
           }
           savedQueries={mockSavedQueries}
-          analyticalQueries={mockAnalyticalQueries}
+          insightQueries={mockinsightQueries}
           initialDataSources={mockDataSources}
           helpContent={
             <div className="p-4">
@@ -437,7 +437,7 @@ export const SQLWithAIAssistant: Story = {
             '-- Click the magic wand button (purple icon) in the toolbar\n-- to use AI-assisted query generation!\n\nSELECT * FROM users LIMIT 10;'
           }
           savedQueries={mockSavedQueries}
-          analyticalQueries={mockAnalyticalQueries}
+          insightQueries={mockinsightQueries}
           initialDataSources={mockDataSources}
           llmCompletionFunction={formatLLMCompletionPrompt}
           helpContent={
@@ -645,7 +645,7 @@ export const SQLWithJavascriptArrayDatasource: Story = {
     }
 
     // Enhanced insights queries for employee data
-    const employeeAnalyticalQueries = [
+    const employeeinsightQueries = [
       {
         id: 'employee-summary',
         name: 'Employee Summary',
@@ -734,21 +734,20 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
-                            width: `${
-                              Math.max(
-                                ...result.data.map((r: any) =>
-                                  Number(r.employee_count || 0)
-                                )
-                              ) > 0
+                            width: `${Math.max(
+                              ...result.data.map((r: any) =>
+                                Number(r.employee_count || 0)
+                              )
+                            ) > 0
                                 ? (Number(row.employee_count || 0) /
-                                    Math.max(
-                                      ...result.data.map((r: any) =>
-                                        Number(r.employee_count || 0)
-                                      )
-                                    )) *
-                                  100
+                                  Math.max(
+                                    ...result.data.map((r: any) =>
+                                      Number(r.employee_count || 0)
+                                    )
+                                  )) *
+                                100
                                 : 0
-                            }%`,
+                              }%`,
                           }}
                         />
                       </div>
@@ -832,11 +831,10 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                   {result.data.map((row: any, index) => (
                     <div
                       key={index}
-                      className={`p-4 rounded-lg ${
-                        row.status === 'active'
+                      className={`p-4 rounded-lg ${row.status === 'active'
                           ? 'bg-green-50 dark:bg-green-950/20'
                           : 'bg-red-50 dark:bg-red-950/20'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium capitalize">
@@ -917,12 +915,12 @@ export const SQLWithJavascriptArrayDatasource: Story = {
                             )
                           ) > 0
                             ? (Number(row.avg_projects || 0) /
-                                Math.max(
-                                  ...result.data.map((r: any) =>
-                                    Number(r.avg_projects || 0)
-                                  )
-                                )) *
-                              100
+                              Math.max(
+                                ...result.data.map((r: any) =>
+                                  Number(r.avg_projects || 0)
+                                )
+                              )) *
+                            100
                             : 0
                         }
                         className="mt-3 h-2"
@@ -973,7 +971,7 @@ SELECT * FROM employees LIMIT 10;`}
               updatedAt: new Date('2024-01-15'),
             },
           ]}
-          analyticalQueries={employeeAnalyticalQueries}
+          insightQueries={employeeinsightQueries}
           initialDataSources={[javascriptDataSource]}
           helpContent={
             <div className="p-4">
@@ -1307,7 +1305,7 @@ export const SQLFailedDataSources: Story = {
             '-- Some data sources failed to load!\n-- Click the database icon to see error details.\n-- Notice the red X indicators on failed sources.'
           }
           savedQueries={mockSavedQueries}
-          analyticalQueries={mockAnalyticalQueries}
+          insightQueries={mockinsightQueries}
           initialDataSources={failedDataSources}
           helpContent={
             <div className="p-4">

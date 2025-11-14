@@ -36,7 +36,6 @@ export function mountAIInsights(
   const style = document.createElement('style')
   style.textContent = styles
   shadowRoot.appendChild(style)
-
   const mountPoint = document.createElement('div')
   shadowRoot.appendChild(mountPoint)
 
@@ -44,8 +43,9 @@ export function mountAIInsights(
   const root = createRoot(mountPoint)
 
   root.render(
-    <ThemeProvider defaultTheme="light">
-      <ShadowDOMProvider container={shadowRoot}>
+    <ShadowDOMProvider container={shadowRoot}>
+      <ThemeProvider defaultTheme="light">
+
         <Composer
           cockpits={[
             {
@@ -61,10 +61,10 @@ export function mountAIInsights(
             },
           ]}
         ></Composer>
-      </ShadowDOMProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ShadowDOMProvider>
   )
 }
 
 // Also expose on window for backwards compatibility with script tags
-;(window as any).mountAIInsights = mountAIInsights
+; (window as any).mountAIInsights = mountAIInsights

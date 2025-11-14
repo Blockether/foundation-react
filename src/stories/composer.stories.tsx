@@ -38,7 +38,7 @@ const mockSavedQueries = [
 ]
 
 // Mock insights queries
-const mockAnalyticalQueries: InsightsQuery[] = [
+const mockinsightQueries: InsightsQuery[] = [
   {
     id: 'summary-stats',
     name: 'Summary Statistics',
@@ -368,7 +368,7 @@ export const Default: Story = {
           <SQLCockpit
             initialQuery="SELECT * FROM users LIMIT 10;"
             savedQueries={mockSavedQueries}
-            analyticalQueries={mockAnalyticalQueries}
+            insightQueries={mockinsightQueries}
             initialDataSources={mockDataSources}
           />
         ),
@@ -403,7 +403,7 @@ export const Multiplecockpits: Story = {
           <SQLCockpit
             initialQuery="SELECT * FROM users LIMIT 10;"
             savedQueries={mockSavedQueries}
-            analyticalQueries={mockAnalyticalQueries}
+            insightQueries={mockinsightQueries}
             initialDataSources={mockDataSources}
           />
         ),
@@ -499,7 +499,7 @@ export const WithDisabledCockpit: Story = {
           <SQLCockpit
             initialQuery="SELECT * FROM users LIMIT 10;"
             savedQueries={mockSavedQueries}
-            analyticalQueries={mockAnalyticalQueries}
+            insightQueries={mockinsightQueries}
             initialDataSources={mockDataSources}
           />
         ),
@@ -572,7 +572,7 @@ export const VerticalTabs: Story = {
           <SQLCockpit
             initialQuery="SELECT * FROM users LIMIT 10;"
             savedQueries={mockSavedQueries}
-            analyticalQueries={mockAnalyticalQueries}
+            insightQueries={mockinsightQueries}
             initialDataSources={mockDataSources}
           />
         ),
@@ -625,7 +625,7 @@ export const ForceShowTabs: Story = {
           <SQLCockpit
             initialQuery="SELECT * FROM users LIMIT 10;"
             savedQueries={mockSavedQueries}
-            analyticalQueries={mockAnalyticalQueries}
+            insightQueries={mockinsightQueries}
             initialDataSources={mockDataSources}
           />
         ),

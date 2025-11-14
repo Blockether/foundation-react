@@ -19,9 +19,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SavedQueries } from './saved'
-import { DataSources, DataSourcesProps } from './datasources'
+import { DataSources } from './datasources'
 import { SavedQuery, DataSource, QueryResult, InsightsQuery } from '@/types/sql'
 import { DuckDBQueryState } from '@/lib/duckdb/types'
+import { AsyncDuckDB } from '@duckdb/duckdb-wasm'
 
 interface SQLToolbarProps {
   // Actions
@@ -33,6 +34,8 @@ interface SQLToolbarProps {
   onAIAssist?: () => void
 
   // State
+  db?: AsyncDuckDB | undefined // DuckDB database instance
+  showDbStatusRed?: boolean // Whether to show red status (5-second timeout exceeded)
   queryState: DuckDBQueryState
   queryResult?: QueryResult | null
   queryError?: any
@@ -53,12 +56,11 @@ interface SQLToolbarProps {
     dataSource?: DataSource
   ) => Promise<void>
 
-  // Analytical query state
-  isInsightsQuery?: boolean
+  // Insights query state
   currentInsightsQuery?: InsightsQuery | null
 
-  // Analytical queries for data analysis
-  analyticalQueries?: InsightsQuery[]
+  // Insight queries for data analysis
+  insightQueries?: InsightsQuery[]
 
   // UI options
   className?: string
@@ -74,6 +76,8 @@ export function SQLToolbar({
   onHelp,
   onSaveResults,
   onAIAssist,
+  db,
+  showDbStatusRed = false,
   queryState,
   queryResult,
   queryError,
@@ -86,9 +90,8 @@ export function SQLToolbar({
   onImportFile,
   onSelectDataSource,
   onExecuteInsightsQuery,
-  isInsightsQuery = false,
   currentInsightsQuery = null,
-  analyticalQueries,
+  insightQueries,
   className,
 }: SQLToolbarProps): React.ReactNode {
   // Animation state for play button
@@ -99,6 +102,7 @@ export function SQLToolbar({
   const isInterrupting = queryState === DuckDBQueryState.QueryInterrupting
   const hasQueryContent = query.trim().length > 0
   const canRun =
+    db &&
     (queryState === DuckDBQueryState.QueryIdle ||
       queryState === DuckDBQueryState.QueryCompleted ||
       queryState === DuckDBQueryState.QueryError) &&
@@ -112,14 +116,14 @@ export function SQLToolbar({
     !queryError &&
     queryState === DuckDBQueryState.QueryCompleted
 
-  // Format functionality is only available when there's content in the editor
-  const canFormat = query.trim().length > 0
+  // Format functionality is only available when there's content in the editor AND database is available
+  const canFormat = db && query.trim().length > 0
 
-  // AI Assist is only available when LLM completion is enabled AND at least one datasource is loaded
+  // AI Assist is only available when LLM completion is enabled, database is available, AND at least one datasource is loaded
   const hasActiveDataSources = dataSources.some(
     ds => ds.loadingStatus === 'loaded'
   )
-  const canUseAIAssist = hasLLMCompletion && onAIAssist && hasActiveDataSources
+  const canUseAIAssist = db && hasLLMCompletion && onAIAssist && hasActiveDataSources
 
   // Reset animation when query state changes (prevents jumping)
   React.useEffect(() => {
@@ -237,9 +241,11 @@ export function SQLToolbar({
             title={
               isRunning || isInterrupting
                 ? 'Cancel query'
-                : hasQueryContent
+                : db && hasQueryContent
                   ? 'Run query (Ctrl+Enter)'
-                  : 'Run query disabled - no content to execute'
+                  : !db
+                    ? 'Run query disabled - no database available'
+                    : 'Run query disabled - no content to execute'
             }
           >
             <Button
@@ -247,16 +253,16 @@ export function SQLToolbar({
               onClick={handlePlayClick}
               disabled={!canRun && !isRunning}
               className={cn(
-                'min-w-[40px] hover:cursor-pointer transition-colors duration-150',
+                'min-w-10 hover:cursor-pointer transition-colors duration-150',
                 isRunning
                   ? 'bg-red-500 text-white hover:bg-red-700'
                   : isInterrupting
                     ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                     : cn(
-                        'bg-green-500 text-white hover:bg-green-700',
-                        // Subtle animation effect
-                        isPlayAnimating && 'bg-green-600'
-                      )
+                      'bg-green-500 text-white hover:bg-green-700',
+                      // Subtle animation effect
+                      isPlayAnimating && 'bg-green-600'
+                    )
               )}
               aria-label={
                 isRunning ? 'Cancel query' : 'Run SQL Query (Ctrl+Enter)'
@@ -291,7 +297,9 @@ export function SQLToolbar({
             title={
               canFormat
                 ? 'Format query (Ctrl+Shift+F)'
-                : 'Format query disabled - no content to format'
+                : !db
+                  ? 'Format query disabled - no database available'
+                  : 'Format query disabled - no content to format'
             }
           >
             <Button
@@ -315,20 +323,30 @@ export function SQLToolbar({
           </div>
 
           {/* AI Assist button */}
-          {canUseAIAssist && (
+          {hasLLMCompletion && onAIAssist && (
             <div
               title={
-                hasActiveDataSources
+                db && hasActiveDataSources
                   ? 'AI-assisted query generation'
-                  : 'AI Assist disabled - no active data sources available'
+                  : !db
+                    ? 'AI Assist disabled - no database available'
+                    : 'AI Assist disabled - no active data sources available'
               }
             >
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={onAIAssist}
-                className="hover:cursor-pointer text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
-                aria-label="AI-assisted query generation"
+                disabled={!canUseAIAssist}
+                className={cn(
+                  'text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300',
+                  canUseAIAssist ? 'hover:cursor-pointer' : 'cursor-not-allowed opacity-50'
+                )}
+                aria-label={
+                  canUseAIAssist
+                    ? 'AI-assisted query generation'
+                    : 'AI Assist disabled - no database or active data sources available'
+                }
               >
                 <Wand2 className="h-4 w-4" />
                 <span className="sr-only">AI Assist</span>
@@ -338,7 +356,7 @@ export function SQLToolbar({
         </div>
 
         {/* Center - Insights Query Indicator */}
-        {isInsightsQuery && currentInsightsQuery && (
+        {currentInsightsQuery && (
           <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
             <BarChart3 className="h-3 w-3 text-primary" />
             <span className="text-xs font-medium text-primary">
@@ -352,14 +370,13 @@ export function SQLToolbar({
           {/* Data Sources component */}
           <div className="relative">
             <DataSources
-              {...({
-                dataSources,
-                isLoadingBatch,
-                onImportFile,
-                onSelectDataSource,
-                onExecuteInsightsQuery,
-                analyticalQueries,
-              } as DataSourcesProps)}
+              dataSources={dataSources}
+              isLoadingBatch={isLoadingBatch}
+              db={db}
+              onImportFile={onImportFile}
+              onSelectDataSource={onSelectDataSource}
+              onExecuteInsightsQuery={onExecuteInsightsQuery}
+              insightQueries={insightQueries}
             />
           </div>
 
@@ -368,6 +385,7 @@ export function SQLToolbar({
             <div className="relative">
               <SavedQueries
                 queries={savedQueries}
+                db={db}
                 onSelect={onSavedQuerySelect}
               />
             </div>
@@ -387,6 +405,29 @@ export function SQLToolbar({
               </Button>
             </div>
           )}
+
+          {/* Database Status Indicator */}
+          <div
+            className="h-8 w-8 flex items-center justify-center relative"
+            title={
+              db
+                ? 'Database connected'
+                : showDbStatusRed
+                  ? 'Database not available (timeout exceeded)'
+                  : 'Database loading...'
+            }
+          >
+            <div
+              className={cn(
+                'w-2 h-2 rounded-full shadow-sm transition-colors duration-300',
+                db
+                  ? 'bg-green-500' // Green when database is available
+                  : showDbStatusRed
+                    ? 'bg-red-500' // Red after 5 seconds when database is still not available
+                    : 'bg-yellow-500 animate-pulse' // Yellow with pulsating animation when loading
+              )}
+            />
+          </div>
         </div>
 
         {/* Status announcement for screen readers */}

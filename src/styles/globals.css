@@ -145,11 +145,12 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-border:    
-;
+  --color-border:
+  ;
 }
 
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -197,8 +198,7 @@
 }
 
 /* Fix Radix dropdown portal positioning */
-.shadow-dom-portal-styles
-  [data-radix-dropdown-menu-content][data-state='open'] {
+.shadow-dom-portal-styles [data-radix-dropdown-menu-content][data-state='open'] {
   opacity: 1;
   transform: scale(1) translateY(0);
 }

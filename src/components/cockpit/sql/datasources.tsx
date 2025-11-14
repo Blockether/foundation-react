@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react'
+import { AsyncDuckDB } from '@duckdb/duckdb-wasm'
 // Lucide React icons
 import {
   Database,
@@ -38,18 +39,19 @@ import {
 export interface DataSourcesProps {
   dataSources: DataSource[]
   isLoadingBatch: boolean
+  db?: AsyncDuckDB | undefined // DuckDB database instance
   onImportFile?: ((file: File) => Promise<void>) | undefined
   onSelectDataSource?: ((dataSource: DataSource) => void) | undefined
   onExecuteInsightsQuery?:
-    | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
-    | undefined
+  | ((query: InsightsQuery, dataSource?: DataSource) => Promise<void>)
+  | undefined
   onRemoveDataSource?: ((dataSource: DataSource) => void) | undefined
   className?: string
   /**
-   * Analytical queries for data analysis
+   * Insights queries for data analysis
    * Only user-provided queries will be available - no built-in defaults
    */
-  analyticalQueries?: InsightsQuery[]
+  insightQueries?: InsightsQuery[] | undefined
 }
 
 /**
@@ -58,16 +60,21 @@ export interface DataSourcesProps {
 export function DataSources({
   dataSources,
   isLoadingBatch,
+  db,
   onImportFile,
   onSelectDataSource,
   onExecuteInsightsQuery,
   onRemoveDataSource,
-  analyticalQueries,
+  insightQueries,
   className,
 }: DataSourcesProps): React.ReactNode {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+
+  // Component is disabled when db is not available
+  const isDbAvailable = !!db
+  const isComponentDisabled = !isDbAvailable
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const triggerButtonRef = useRef<HTMLButtonElement>(null)
@@ -124,7 +131,7 @@ export function DataSources({
     try {
       await onImportFile(file)
     } catch (error) {
-      console.error('Failed to import file:', error)
+      console.error('[blockether-foundation-react] Failed to import file:', error)
     } finally {
       setIsUploading(false)
       // Reset file input
@@ -176,9 +183,9 @@ export function DataSources({
 
   const getAvailableQueries = (dataSource: DataSource): InsightsQuery[] => {
     // Filter insights queries based on targeting criteria
-    if (!analyticalQueries) return []
+    if (!insightQueries) return []
 
-    return analyticalQueries.filter(query => {
+    return insightQueries.filter(query => {
       // Check target tables - if specified, must include this data source's table
       if (query.targetTables && query.targetTables.length > 0) {
         if (!query.targetTables.includes(dataSource.tableName)) {
@@ -233,10 +240,15 @@ export function DataSources({
         variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="h-8 w-8 p-0 hover:cursor-pointer relative"
-        aria-label="Data sources"
+        disabled={isComponentDisabled}
+        className={cn(
+          'h-8 w-8 p-0 relative',
+          isComponentDisabled ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'
+        )}
+        aria-label={isComponentDisabled ? 'Data sources disabled - no database available' : 'Data sources'}
         aria-expanded={isOpen}
         aria-haspopup="menu"
+        title={isComponentDisabled ? 'Data sources disabled - no database available' : 'Data sources'}
       >
         <Database className="h-4 w-4" />
         {/* Yellow loading indicator dot */}
@@ -291,7 +303,7 @@ export function DataSources({
           )}
 
           {/* Data sources list */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-[64px]">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-16">
             {filteredDataSources.length === 0 ? (
               <div className="flex items-center justify-center min-h-60 p-8">
                 <div className="text-center">
@@ -315,6 +327,7 @@ export function DataSources({
                   const hasInsights =
                     onExecuteInsightsQuery && availableQueries.length > 0
                   const isDisabled =
+                    isComponentDisabled ||
                     dataSource.loadingStatus === 'failed' ||
                     dataSource.loadingStatus === 'loading' ||
                     dataSource.loadingStatus === 'verification_needed'
@@ -344,7 +357,7 @@ export function DataSources({
                           onClick={() => handleDataSourceClick(dataSource)}
                         >
                           <div className="flex items-center gap-3 h-full overflow-hidden">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                               {getDataSourceIcon(dataSource.type)}
                             </div>
                             <div className="flex-1 min-w-0 overflow-hidden">
@@ -353,13 +366,13 @@ export function DataSources({
                                   {dataSource.name}
                                 </div>
                                 {dataSource.file && (
-                                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                                  <span className="text-xs text-muted-foreground shrink-0">
                                     ({formatFileSize(dataSource.file.size)})
                                   </span>
                                 )}
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <span className="flex-shrink-0">Table:</span>
+                                <span className="shrink-0">Table:</span>
                                 <span className="font-mono bg-muted inline-block px-1 truncate overflow-hidden text-ellipsis max-w-[140px]">
                                   {dataSource.tableName}
                                 </span>
@@ -367,7 +380,7 @@ export function DataSources({
                                 {isLoading && (
                                   <span
                                     title="Loading..."
-                                    className="flex-shrink-0"
+                                    className="shrink-0"
                                   >
                                     <Loader2 className="h-3 w-3 text-blue-500 animate-spin" />
                                   </span>
@@ -375,7 +388,7 @@ export function DataSources({
                                 {needsVerification && (
                                   <span
                                     title="Verification needed"
-                                    className="animate-pulse flex-shrink-0"
+                                    className="animate-pulse shrink-0"
                                   >
                                     <HelpCircle className="h-3 w-3 text-yellow-600 dark:text-yellow-500" />
                                   </span>
@@ -383,14 +396,14 @@ export function DataSources({
                                 {dataSource.loadingStatus === 'loaded' && (
                                   <span
                                     title="Loaded successfully"
-                                    className="flex-shrink-0"
+                                    className="shrink-0"
                                   >
                                     <CheckCircle className="h-3 w-3 text-green-600 dark:text-green-500" />
                                   </span>
                                 )}
                                 {isFailed && (
                                   <span
-                                    className="cursor-help relative z-2 flex-shrink-0"
+                                    className="cursor-help relative z-2 shrink-0"
                                     title={
                                       dataSource.loadingError ||
                                       'Failed to load'
@@ -423,7 +436,7 @@ export function DataSources({
 
                         {/* Analyze button */}
                         {hasInsights && !isDisabled && (
-                          <div className="px-2 cursor-pointer">
+                          <div className="cursor-pointer">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -454,24 +467,24 @@ export function DataSources({
                                     switch (query.icon) {
                                       case 'BarChart3':
                                         return (
-                                          <BarChart3 className="h-4 w-4 flex-shrink-0" />
+                                          <BarChart3 className="h-4 w-4 shrink-0" />
                                         )
                                       case 'Search':
                                         return (
-                                          <Search className="h-4 w-4 flex-shrink-0" />
+                                          <Search className="h-4 w-4 shrink-0" />
                                         )
                                       case 'Shield':
                                         return (
-                                          <Shield className="h-4 w-4 flex-shrink-0" />
+                                          <Shield className="h-4 w-4 shrink-0" />
                                         )
                                       case 'Lightbulb':
                                         return (
-                                          <Lightbulb className="h-4 w-4 flex-shrink-0" />
+                                          <Lightbulb className="h-4 w-4 shrink-0" />
                                         )
                                       default:
                                         // For string emojis or custom strings, render as text
                                         return (
-                                          <span className="h-4 w-4 flex-shrink-0 flex items-center justify-center text-sm">
+                                          <span className="h-4 w-4 shrink-0 flex items-center justify-center text-sm">
                                             {query.icon}
                                           </span>
                                         )
@@ -537,9 +550,13 @@ export function DataSources({
                 size="sm"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                disabled={isUploading || isComponentDisabled}
                 className="w-full justify-start gap-2 cursor-pointer"
-                title="Supported files are: .csv, .parquet, .json, .jsonl"
+                title={
+                  isComponentDisabled
+                    ? 'Import disabled - no database available'
+                    : 'Supported files are: .csv, .parquet, .json, .jsonl'
+                }
               >
                 <Upload className="h-4 w-4" />
                 {isUploading ? 'Importing...' : 'Import from file'}

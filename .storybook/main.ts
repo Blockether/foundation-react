@@ -26,6 +26,7 @@ const config: StorybookConfig = {
     return mergeConfig(config, {
       define: {
         global: 'globalThis',
+        BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION: JSON.stringify(''),
       },
       optimizeDeps: {
         include: ['react', 'react-dom'],

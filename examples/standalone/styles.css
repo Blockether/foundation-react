@@ -1,3 +1,11 @@
-@import 'monaco-editor/min/vs/editor/editor.main.css';
 @import '@blockether/foundation-react/styles';
 @import 'sonner/dist/styles.css';
+@import 'monaco-editor/min/vs/editor/editor.main.css';
+@import 'monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.css';
+
+
+@font-face {
+    font-family: 'codicon';
+    font-display: block;
+    src: url('monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.ttf') format('truetype');
+}

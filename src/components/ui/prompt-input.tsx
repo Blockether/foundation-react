@@ -1135,7 +1135,7 @@ export const PromptInputSpeechButton = ({
       }
 
       speechRecognition.onerror = event => {
-        console.error('Speech recognition error:', event.error)
+        console.error('[blockether-foundation-react] Speech recognition error:', event.error)
         setIsListening(false)
       }
 
