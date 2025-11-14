@@ -82,6 +82,30 @@ const bundleResolver = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION !== '' ?
           throw new Error('Invalid DuckDB bundle paths: one or more modules resolved to "unknown"')
         }
 
+        // Additional validation: ensure paths are properly formed
+        if (!MVP_MODULE.endsWith('.wasm') || !MVP_MODULE.includes('duckdb-mvp')) {
+          throw new Error(`Invalid MVP module path: ${MVP_MODULE}. Expected path ending with 'duckdb-mvp.wasm'`)
+        }
+
+        if (!MVP_WORKER.endsWith('.js') || !MVP_WORKER.includes('duckdb-browser-mvp.worker')) {
+          throw new Error(`Invalid MVP worker path: ${MVP_WORKER}. Expected path ending with 'duckdb-browser-mvp.worker.js'`)
+        }
+
+        if (!EH_MODULE.endsWith('.wasm') || !EH_MODULE.includes('duckdb-eh')) {
+          throw new Error(`Invalid EH module path: ${EH_MODULE}. Expected path ending with 'duckdb-eh.wasm'`)
+        }
+
+        if (!EH_WORKER.endsWith('.js') || !EH_WORKER.includes('duckdb-browser-eh.worker')) {
+          throw new Error(`Invalid EH worker path: ${EH_WORKER}. Expected path ending with 'duckdb-browser-eh.worker.js'`)
+        }
+
+        // Validate that all files use the same base location
+        const baseUrl = BLOCKETHER_FOUNDATION_DUCK_DB_LOCATION
+        if (!MVP_MODULE.startsWith(baseUrl) || !MVP_WORKER.startsWith(baseUrl) ||
+            !EH_MODULE.startsWith(baseUrl) || !EH_WORKER.startsWith(baseUrl)) {
+          throw new Error(`Path inconsistency: All DuckDB files must be served from the same base location: ${baseUrl}`)
+        }
+
         const bundles = {
           mvp: { mainModule: MVP_MODULE, mainWorker: MVP_WORKER },
           eh: { mainModule: EH_MODULE, mainWorker: EH_WORKER },

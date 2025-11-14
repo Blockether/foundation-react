@@ -9,6 +9,7 @@ import React, { useRef, useEffect, useCallback, useState } from 'react'
 import { Editor, OnMount } from '@monaco-editor/react'
 import { cn } from '@/lib/utils'
 import { useTheme } from '../../theme'
+import { useShadowDOM } from '@/lib/shadow-dom'
 import { DataSource } from '@/types/sql'
 import {
   registerDuckDBCompletionProvider,
@@ -16,11 +17,7 @@ import {
 } from '@/lib/sql-completion'
 import { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import { configureMonacoEnvironment } from '@/lib/monaco/worker'
 
 interface SQLEditorProps {
   value: string
@@ -77,30 +74,28 @@ export function SQLEditor({
   const completionProviderRef = useRef<any>(null)
   const monacoRef = useRef<any>(null)
   const { theme } = useTheme()
+  const { container } = useShadowDOM()
+
+  // Log shadow DOM detection for debugging
+  React.useEffect(() => {
+    if (container) {
+      if (container instanceof ShadowRoot) {
+        console.log('[blockether-foundation-react] SQLEditor: ShadowRoot detected, enabling ARIA container support')
+      } else if ('shadowRoot' in container && container.shadowRoot) {
+        console.log('[blockether-foundation-react] SQLEditor: HTMLElement with ShadowRoot detected, enabling ARIA container support')
+      }
+    } else {
+      console.log('[blockether-foundation-react] SQLEditor: Running in regular DOM mode')
+    }
+  }, [container])
   const monacoTheme = theme === 'light' ? 'light' : 'vs-dark'
   const [currentValue, setCurrentValue] = useState(value)
   const [isMonacoLoaded, setIsMonacoLoaded] = useState(false)
 
-  // Initialize Monaco Editor for Vite
+  // Initialize Monaco Editor
   useEffect(() => {
-    // Configure Monaco workers for Vite
-    self.MonacoEnvironment = {
-      getWorker(_, label) {
-        if (label === 'json') {
-          return new jsonWorker()
-        }
-        if (label === 'css' || label === 'scss' || label === 'less') {
-          return new cssWorker()
-        }
-        if (label === 'html' || label === 'handlebars' || label === 'razor') {
-          return new htmlWorker()
-        }
-        if (label === 'typescript' || label === 'javascript') {
-          return new tsWorker()
-        }
-        return new editorWorker()
-      },
-    }
+    // Configure Monaco environment with externalized worker
+    configureMonacoEnvironment()
 
     loader.config({ monaco })
 
@@ -109,7 +104,7 @@ export function SQLEditor({
       .init()
       .then(monaco => {
         // Expose monaco globally for completion provider access
-        ;(window as any).monaco = monaco
+        ; (window as any).monaco = monaco
         console.log('[blockether-foundation-react] Monaco initialized and exposed globally')
         setIsMonacoLoaded(true)
       })
@@ -165,8 +160,16 @@ export function SQLEditor({
       cursorSmoothCaretAnimation: 'on' as const,
       smoothScrolling: true,
       mouseWheelZoom: false,
+
+      // ARIA container for shadow DOM accessibility
+      ...(container && container instanceof ShadowRoot && {
+        ariaContainerElement: container as any
+      }),
+      ...(container && 'shadowRoot' in container && container.shadowRoot && {
+        ariaContainerElement: container.shadowRoot as any
+      })
     }),
-    [tabSize, wordWrap, minimap, enableAutoComplete]
+    [tabSize, wordWrap, minimap, enableAutoComplete, container]
   )
 
   // Handle editor mount
@@ -203,10 +206,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ;(container.style as any).userSelect = 'auto'
-          ;(container.style as any).webkitUserSelect = 'auto'
-          ;(container.style as any).MozUserSelect = 'auto'
-          ;(container.style as any).msUserSelect = 'auto'
+          ; (container.style as any).userSelect = 'auto'
+            ; (container.style as any).webkitUserSelect = 'auto'
+            ; (container.style as any).MozUserSelect = 'auto'
+            ; (container.style as any).msUserSelect = 'auto'
         }
       })
 
@@ -218,10 +221,10 @@ export function SQLEditor({
           '[data-sql-editor="true"]'
         ) as HTMLElement
         if (container) {
-          ;(container.style as any).userSelect = 'none'
-          ;(container.style as any).webkitUserSelect = 'none'
-          ;(container.style as any).MozUserSelect = 'none'
-          ;(container.style as any).msUserSelect = 'none'
+          ; (container.style as any).userSelect = 'none'
+            ; (container.style as any).webkitUserSelect = 'none'
+            ; (container.style as any).MozUserSelect = 'none'
+            ; (container.style as any).msUserSelect = 'none'
         }
       })
 

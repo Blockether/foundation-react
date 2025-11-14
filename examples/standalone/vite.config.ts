@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-import { resolve } from 'path'
 import { PluginOption } from 'vite'
 
 export default defineConfig({
@@ -29,6 +28,10 @@ export default defineConfig({
                 },
                 {
                     src: 'node_modules/@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js',
+                    dest: 'assets'
+                },
+                {
+                    src: 'node_modules/monaco-editor/esm/vs/editor/editor.worker.js',
                     dest: 'assets'
                 }
             ]
